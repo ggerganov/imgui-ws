@@ -60,6 +60,7 @@ Open some browsers and point them to http://localhost:5000/
 ## Live demo
 
 If you are lucky the following server might be up and running.
+
 **Note:** the page can stream relatively big amount of traffic:
 
 http://95.111.37.39:5000/
