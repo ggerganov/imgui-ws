@@ -1,5 +1,6 @@
 # imgui-ws
-ImGui over WebSockets
+
+[ImGui](https://github.com/ocornut/imgui) over WebSockets
 
 This is a small library that allows to stream an ImGui scene to multiple WebSocket clients at once. This is achieved by sending ImGui's DrawData structure which is then rendered in the browser using WebGL. To reduce the amount of network traffic, we send only the diffs between sequential frames.
 
@@ -27,8 +28,7 @@ imguiWS.setDrawData(ImGui::GetDrawData());
 ```
 # build
 git clone https://github.com/ggerganov/imgui-ws --recursive
-cd imgui-ws
-mkdir build && cd build
+cd imgui-ws && mkdir build && cd build
 cmake ..
 make
 
@@ -61,5 +61,5 @@ If you are lucky the following server might be up and running:
 http://95.111.37.39:5000/
 
 ## Credits
- - The project is heavily inspired by https://github.com/JordiRos/remoteimgui
+ - This project is heavily inspired by https://github.com/JordiRos/remoteimgui
  - Most of the JS code is taken from https://github.com/flyover/imgui-js
