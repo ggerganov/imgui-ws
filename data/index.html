@@ -10,10 +10,7 @@
             var tex_font_abuf = null;
 
             function init() {
-                var output = document.createElement('div');
-                document.body.appendChild( output );
-
-                imgui_ws.init('canvas_main');
+                var output = document.getElementById('client-info');
 
                 incppect.render = function() {
                     if (tex_font_abuf === null || tex_font_abuf.byteLength < 1) {
@@ -36,6 +33,11 @@
                     imgui_ws.gl.viewport(0, 0, imgui_ws.canvas.width, imgui_ws.canvas.height);
 
                     imgui_ws.render(draw_data_abuf);
+
+                    var my_id = this.get_int32('my_id[%d]', -1);
+
+                    output.innerHTML = '';
+                    output.innerHTML += 'Your client Id: ' + my_id;
                 }
 
                 incppect.onerror = function(evt) {
@@ -50,15 +52,73 @@
                 incppect.onopen = function(evt) {
                 }
 
-                incppect.k_requests_update_freq_ms = 50;
+                incppect.k_requests_update_freq_ms = document.getElementById('update_freq_ms').value;
                 incppect.init();
+
+                imgui_ws.canvas_on_pointermove = function(event) {
+                    const device_pixel_ratio = window.device_pixel_ratio || 1;
+                    this.io.mouse_x = event.offsetX * device_pixel_ratio;
+                    this.io.mouse_y = event.offsetY * device_pixel_ratio;
+
+                    if (this.io.want_capture_mouse) {
+                        event.preventDefault();
+                    }
+
+                    incppect.send('0 ' + this.io.mouse_x + ' ' + this.io.mouse_y);
+                };
+
+                imgui_ws.canvas_on_pointerdown = function(event) {
+                    const device_pixel_ratio = window.device_pixel_ratio || 1;
+                    this.io.mouse_x = event.offsetX * device_pixel_ratio;
+                    this.io.mouse_y = event.offsetY * device_pixel_ratio;
+
+                    //console.log('left mouse down: ' + this.io.mouse_x + ' ' + this.io.mouse_y + ' event.button = ' + event.button);
+                    if (event.button == 0) {
+                        this.io.mouse_left_down = 1;
+                    }
+
+                    incppect.send('1 ' + event.button);
+                    //this.io.MouseDown[mouse_button_map[event.button]] = true;
+                    // if (this.io.want_capture_mouse) {
+                    //     event.preventDefault();
+                    // }
+                };
+
+                imgui_ws.canvas_on_pointerup = function(event) {
+                    if (event.button == 0) {
+                        this.io.mouse_left_down = 1;
+                    }
+                    incppect.send('2 ' + event.button);
+                    //this.io.MouseDown[mouse_button_map[event.button]] = false;
+                    if (this.io.want_capture_mouse) {
+                        event.preventDefault();
+                    }
+                };
+
+                imgui_ws.init('canvas_main');
             }
 
         </script>
 
-        <div id=main-container align=center width=900px>
-            <br><br>
-            <canvas id="canvas_main" width="1024px" height="800px" style="border:1px solid #d3d3d3;">Your browser does not support the HTML5 canvas tag.</canvas>
+        <div id=main-container align=left width=900px style='padding-left: 16px; padding-top: 1px;'>
+            <h2>imgui-ws</h2>
+            <div style='padding: 3px; width: 800px; word-wrap: break-word;'>
+                The vertex and index arrays for the ImGui scene below are generated server-side.
+                The arrays are then sent to the WebSocket clients where it is rendered in the browser with WebGL.
+            </div>
+            <br>
+            <div style='padding: 3px; width: 800px; word-wrap: break-word;'>
+                There can be multiple clients connected simultaneously to the same server (see the "WebSocket clients" window below).
+                Wait for your client to take control and try playing with the widgets.
+                Your actions will be visible to all currently connected clients.
+            </div>
+            <br>
+            <div id="client-info"></div>
+            Update freq: <input type="range" min="16" max="200" value="50" class="slider" id="update_freq_ms"
+                                    onChange="incppect.k_requests_update_freq_ms = this.value; update_freq_ms_out.value = this.value;">
+            <output id="update_freq_ms_out">50</output>[ms]<br>
+            <br>
+            <canvas id="canvas_main" width="1200px" height="800px" style="border:1px solid #d3d3d3;">Your browser does not support the HTML5 canvas tag.</canvas>
         </div>
     </body>
 </html>

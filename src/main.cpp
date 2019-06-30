@@ -123,6 +123,25 @@ int main(int, char**)
         imguiWS.setTexture(1, width, height, (const char *) pixels);
     }
 
+    // client control management
+    struct ClientData {
+        bool hasControl = false;
+
+        std::string ip = "---";
+    };
+
+    float tControl_s = 10.0;
+    auto tControlNext_s = ImGui::GetTime();
+    int controlIteration = 0;
+    int curIdControl = -1;
+    std::map<int, ClientData> clients;
+
+    // client input
+    ImVec2 lastMousePos = { 0.0, 0.0 };
+    bool  lastMouseDown[5];
+    float lastMouseWheel;
+    float lastMouseWheelH;
+
     // Main loop
     bool done = false;
     while (!done)
@@ -145,6 +164,76 @@ int main(int, char**)
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame(window);
+
+        // websocket event handling
+        auto events = imguiWS.takeEvents();
+        for (auto & event : events) {
+            SDL_Event e;
+            switch (event.type) {
+                case ImGuiWS::Event::Connected:
+                    {
+                        clients[event.clientId].ip = event.ip;
+                    }
+                    break;
+                case ImGuiWS::Event::Disconnected:
+                    {
+                        clients.erase(event.clientId);
+                    }
+                    break;
+                case ImGuiWS::Event::MouseMove:
+                    {
+                        if (event.clientId == curIdControl) {
+                            lastMousePos.x = event.mouse_x;
+                            lastMousePos.y = event.mouse_y;
+                        }
+                    }
+                    break;
+                case ImGuiWS::Event::MouseDown:
+                    {
+                        if (event.clientId == curIdControl) {
+                            lastMouseDown[event.mouse_but] = true;
+                        }
+                    }
+                    break;
+                case ImGuiWS::Event::MouseUp:
+                    {
+                        if (event.clientId == curIdControl) {
+                            lastMouseDown[event.mouse_but] = false;
+                        }
+                    }
+                    break;
+                default:
+                    {
+                        printf("Unknown input event\n");
+                    }
+            }
+        }
+
+        if (clients.size() > 0 && (clients.find(curIdControl) == clients.end() || ImGui::GetTime() > tControlNext_s)) {
+            if (clients.find(curIdControl) != clients.end()) {
+                clients[curIdControl].hasControl = false;
+            }
+            int k = ++controlIteration % clients.size();
+            auto client = clients.begin();
+            std::advance(client, k);
+            client->second.hasControl = true;
+            curIdControl = client->first;
+            tControlNext_s = ImGui::GetTime() + tControl_s;
+        }
+
+        if (clients.size() == 0) {
+            curIdControl = -1;
+        }
+
+        if (curIdControl > 0) {
+            ImGui::GetIO().MousePos = lastMousePos;
+            ImGui::GetIO().MouseDown[0] = lastMouseDown[0];
+            ImGui::GetIO().MouseDown[1] = lastMouseDown[1];
+            ImGui::GetIO().MouseDown[2] = lastMouseDown[2];
+            ImGui::GetIO().MouseDown[3] = lastMouseDown[3];
+            ImGui::GetIO().MouseDown[4] = lastMouseDown[4];
+        }
+
         ImGui::NewFrame();
 
         // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
@@ -184,6 +273,20 @@ int main(int, char**)
             ImGui::End();
         }
 
+        // Show clients
+        ImGui::SetNextWindowPos({ 10, 10 } , ImGuiCond_Always);
+        ImGui::SetNextWindowSize({ 400, 300 } , ImGuiCond_Always);
+        ImGui::Begin((std::string("WebSocket clients (") + std::to_string(clients.size()) + ")").c_str(), nullptr, ImGuiWindowFlags_NoCollapse);
+        ImGui::Text(" Id   Ip addr");
+        for (auto & [ cid, client ] : clients) {
+            ImGui::Text("%3d : %s", cid, client.ip.c_str());
+            if (client.hasControl) {
+                ImGui::SameLine();
+                ImGui::TextDisabled(" [has control for %4.2f seconds]", tControlNext_s - ImGui::GetTime());
+            }
+        }
+        ImGui::End();
+
         // Rendering
         ImGui::Render();
 
@@ -194,13 +297,6 @@ int main(int, char**)
         SDL_GL_SwapWindow(window);
 
         imguiWS.setDrawData(ImGui::GetDrawData());
-
-        //printf("CmdListsCount = %d\n", drawData->CmdListsCount);
-        //printf("TotalIdxCount = %d\n", drawData->TotalIdxCount);
-        //printf("TotalVtxCount = %d\n", drawData->TotalVtxCount);
-        //printf("DisplayPos  = %g %gd\n", drawData->DisplayPos.x, drawData->DisplayPos.y);
-        //printf("DisplaySize = %g %gd\n", drawData->DisplaySize.x, drawData->DisplaySize.y);
-        //printf("FramebufferScale = %g %gd\n", drawData->FramebufferScale.x, drawData->FramebufferScale.y);
     }
 
     // Cleanup
