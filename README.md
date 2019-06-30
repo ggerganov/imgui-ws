@@ -1,8 +1,8 @@
 # imgui-ws
 
-[ImGui](https://github.com/ocornut/imgui) over WebSockets
+[Dear ImGui](https://github.com/ocornut/imgui) over WebSockets
 
-This is a small library that allows to stream an ImGui scene to multiple WebSocket clients at once. This is achieved by sending ImGui's DrawData structure which is then rendered in the browser using WebGL. To reduce the amount of network traffic, we send only the diffs between sequential frames.
+This is a small library that allows to stream a Dear ImGui scene to multiple WebSocket clients at once. This is achieved by sending Dear ImGui's DrawData structure which is then rendered in the browser using WebGL. To reduce the amount of network traffic, we send only the diffs between sequential frames.
 
 ## Usage
 
@@ -15,7 +15,7 @@ imguiWS.init(port, pathHttp);
 ...
 
 // set the ImGui font texture, so it can be transmitted to connecting clients
-ImGui::GetIO().Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);                                                                                            
+ImGui::GetIO().Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
 imguiWS.setTexture(1, width, height, (const char *) pixels);
 
 ...
@@ -52,9 +52,9 @@ Open some browsers and point them to http://localhost:5000/
 ## Dependencies
 
  - [uWebSockets](https://github.com/uNetworking/uWebSockets)
- 
+
 ## Screenshot 
- 
+
  <a href="https://i.imgur.com/TVxj8cf.png" target="_blank">![imgui-ws](https://i.imgur.com/TVxj8cf.png)</a>
 
 ## Live demo
