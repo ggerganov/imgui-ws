@@ -7,6 +7,8 @@ This is a small library that allows to stream an ImGui scene to multiple WebSock
 ## Usage
 
 ```
+#include "imgui-ws.h"
+...
 // initialize an instance of the http/WS server
 ImGuiWS imguiWS;
 imguiWS.init(port, pathHttp);
@@ -45,6 +47,7 @@ Open some browsers and point them to http://localhost:5000/
 - [ ] 32-bit vetex indices
 - [ ] Fix colors (there is some weird color offset in the browser)
 - [ ] Fix Safari's canvas event listeners
+- [ ] Rearrange code in a real library (currently, just it is just an example app)
 
 ## Dependencies
 
