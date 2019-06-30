@@ -10,6 +10,7 @@
 #include "incppect/incppect.h"
 
 #include <sstream>
+#include <cstring>
 
 ImGuiWS::ImGuiWS() {
 }

@@ -26,5 +26,8 @@ target_include_directories(imgui-ws PRIVATE
 target_link_libraries(imgui-ws PRIVATE
     incppect
     ${SDL2_LIBRARIES}
+    ${OPENGL_LIBRARIES}
+    ${CMAKE_DL_LIBS}
+    ${CMAKE_THREAD_LIBS_INIT}
     ${ADDITIONAL_LIBRARIES}
     )
