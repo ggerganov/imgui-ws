@@ -114,7 +114,7 @@ int main(int, char**)
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     ImGuiWS imguiWS;
-    imguiWS.init(4000, "../data");
+    imguiWS.init(5000, "../data");
 
     {
         unsigned char* pixels;
