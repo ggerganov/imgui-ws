@@ -40,15 +40,6 @@ make
 
 Open some browsers and point them to http://localhost:5000/
 
-## Todo
-
-- [ ] Full input handling (currently only mouse move + mouse click, no keyboard, no mobile, etc.)
-- [ ] Handling multiple textures
-- [ ] 32-bit vetex indices
-- [ ] Fix colors (there is some weird color offset in the browser)
-- [ ] Fix Safari's canvas event listeners
-- [ ] Rearrange code in a real library (currently, just it is just an example app)
-
 ## Dependencies
 
  - [uWebSockets](https://github.com/uNetworking/uWebSockets)
