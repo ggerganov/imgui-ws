@@ -169,7 +169,7 @@ bool ImGuiWS::init(int port, const char * pathHttp) {
     m_impl->worker = m_impl->incppect.runAsync(Incppect::Parameters {
         .portListen = port,
             .maxPayloadLength_bytes = 1024*1024,
-            .tLastRequestTimeout_ms = 3000,
+            .tLastRequestTimeout_ms = -1,
             .httpRoot = pathHttp,
     });
 
