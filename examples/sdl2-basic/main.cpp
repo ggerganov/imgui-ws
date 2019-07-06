@@ -3,11 +3,11 @@
 // (SDL is a cross-platform general purpose library for handling windows, inputs, OpenGL/Vulkan graphics context creation, etc.)
 // (GL3W is a helper library to access OpenGL functions since there is no standard header to access modern OpenGL functions easily. Alternatives are GLEW, Glad, etc.)
 
-#include "imgui.h"
-#include "imgui_impl_sdl.h"
-#include "imgui_impl_opengl3.h"
+#include "imgui/imgui.h"
+#include "imgui/examples/imgui_impl_sdl.h"
+#include "imgui/examples/imgui_impl_opengl3.h"
 
-#include "imgui-ws.h"
+#include "imgui-ws/imgui-ws.h"
 
 #include <stdio.h>
 #include <SDL.h>
@@ -26,8 +26,15 @@
 #endif
 
 // Main code
-int main(int, char**)
-{
+int main(int argc , char ** argv) {
+    printf("Usage: %s [port] [http-root]\n", argv[0]);
+
+    int port = 5000;
+    std::string httpRoot = "../examples";
+
+    if (argc > 1) port = atoi(argv[1]);
+    if (argc > 2) httpRoot = argv[2];
+
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
     {
@@ -57,7 +64,7 @@ int main(int, char**)
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-    SDL_Window* window = SDL_CreateWindow("Dear ImGui SDL2+OpenGL3 example", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
+    SDL_Window* window = SDL_CreateWindow("Dear ImGui SDL2+OpenGL3 example", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1200, 800, window_flags);
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, gl_context);
     SDL_GL_SetSwapInterval(1); // Enable vsync
@@ -114,7 +121,7 @@ int main(int, char**)
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     ImGuiWS imguiWS;
-    imguiWS.init(5000, "../data");
+    imguiWS.init(port, (httpRoot + "/sdl2-basic").c_str());
 
     {
         unsigned char* pixels;
@@ -245,7 +252,6 @@ int main(int, char**)
             static float f = 0.0f;
             static int counter = 0;
 
-            ImGui::SetNextWindowPos({ 10, 320 } , ImGuiCond_Once);
             ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
             ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)

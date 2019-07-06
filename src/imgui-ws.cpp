@@ -3,9 +3,11 @@
  *  \author Georgi Gerganov
  */
 
-#include "imgui-ws.h"
+#include "imgui-ws/imgui-ws.h"
 
-#include "imgui.h"
+#include "common.h"
+
+#include "imgui/imgui.h"
 
 #include "incppect/incppect.h"
 
@@ -129,10 +131,12 @@ bool ImGuiWS::init(int port, const char * pathHttp) {
         m_events.cv.notify_one();
     });
 
+    Incppect::getInstance().setResource("/imgui-ws.js", kImGuiWS_js);
+
     // start the http/websocket server
     m_worker = Incppect::getInstance().runAsync(Incppect::Parameters {
         .portListen = port,
-            .maxPayloadLength_bytes = 256*1024,
+            .maxPayloadLength_bytes = 1024*1024,
             .tLastRequestTimeout_ms = 3000,
             .httpRoot = pathHttp,
     });

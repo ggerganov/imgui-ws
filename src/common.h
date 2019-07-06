@@ -1,3 +1,13 @@
+/*! \file common.h
+ *  \brief Auto-generated file. Do not modify.
+ *  \author Georgi Gerganov
+ */
+
+#pragma once
+
+// the main js module
+constexpr auto kImGuiWS_js = R"js(
+
 var imgui_ws = {
     canvas: null,
     gl: null,
@@ -236,7 +246,10 @@ var imgui_ws = {
         (last_scissor_box !== null) && this.gl.scissor(last_scissor_box[0], last_scissor_box[1], last_scissor_box[2], last_scissor_box[3]);
     },
 
-    canvas_on_pointermove: null,
-    canvas_on_pointerdown: null,
-    canvas_on_pointerup: null,
+    canvas_on_pointermove: function(event) {},
+    canvas_on_pointerdown: function(event) {},
+    canvas_on_pointerup: function(event) {},
 }
+
+
+)js";

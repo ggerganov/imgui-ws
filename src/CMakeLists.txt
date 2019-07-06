@@ -1,33 +1,17 @@
-if (APPLE)
-    set(ADDITIONAL_LIBRARIES "-framework Cocoa")
-else (APPLE)
-    unset(ADDITIONAL_LIBRARIES)
-endif (APPLE)
+file(READ "imgui-ws.js" src_imgui-ws_js)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/common.h.in ${CMAKE_CURRENT_SOURCE_DIR}/common.h @ONLY)
 
-add_executable(imgui-ws
-    main.cpp
+add_library(imgui-ws SHARED
     imgui-ws.cpp
-    ../imgui/imgui.cpp
-    ../imgui/imgui_draw.cpp
-    ../imgui/imgui_demo.cpp
-    ../imgui/imgui_widgets.cpp
-    ../imgui/examples/libs/gl3w/GL/gl3w.c
-    ../imgui/examples/imgui_impl_sdl.cpp
-    ../imgui/examples/imgui_impl_opengl3.cpp
     )
 
-target_include_directories(imgui-ws PRIVATE
-    ../imgui
-    ../imgui/examples
-    ../imgui/examples/libs/gl3w
-    ${SDL2_INCLUDE_DIRS}
+target_include_directories(imgui-ws PUBLIC
+    ../include
     )
 
 target_link_libraries(imgui-ws PRIVATE
+    imgui
     incppect
-    ${SDL2_LIBRARIES}
-    ${OPENGL_LIBRARIES}
     ${CMAKE_DL_LIBS}
     ${CMAKE_THREAD_LIBS_INIT}
-    ${ADDITIONAL_LIBRARIES}
     )
