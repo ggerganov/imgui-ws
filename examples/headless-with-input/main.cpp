@@ -31,9 +31,9 @@ struct State {
 
     // client input
     ImVec2 lastMousePos = { 0.0, 0.0 };
-    bool  lastMouseDown[5];
-    float lastMouseWheel;
-    float lastMouseWheelH;
+    bool  lastMouseDown[5] = { false, false, false, false, false };
+    float lastMouseWheel = 0.0;
+    float lastMouseWheelH = 0.0;
 
     std::string lastAddText = "";
     bool lastKeysDown[512];
@@ -55,27 +55,27 @@ int main(int argc, char ** argv) {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
 
-    //io.KeyMap[ImGuiKey_Tab] = SDL_SCANCODE_TAB;
-    //io.KeyMap[ImGuiKey_LeftArrow] = SDL_SCANCODE_LEFT;
-    //io.KeyMap[ImGuiKey_RightArrow] = SDL_SCANCODE_RIGHT;
-    //io.KeyMap[ImGuiKey_UpArrow] = SDL_SCANCODE_UP;
-    //io.KeyMap[ImGuiKey_DownArrow] = SDL_SCANCODE_DOWN;
-    //io.KeyMap[ImGuiKey_PageUp] = SDL_SCANCODE_PAGEUP;
-    //io.KeyMap[ImGuiKey_PageDown] = SDL_SCANCODE_PAGEDOWN;
-    //io.KeyMap[ImGuiKey_Home] = SDL_SCANCODE_HOME;
-    //io.KeyMap[ImGuiKey_End] = SDL_SCANCODE_END;
-    //io.KeyMap[ImGuiKey_Insert] = SDL_SCANCODE_INSERT;
-    //io.KeyMap[ImGuiKey_Delete] = SDL_SCANCODE_DELETE;
-    io.KeyMap[ImGuiKey_Backspace] = 8;
-    io.KeyMap[ImGuiKey_Space] = 32;
-    io.KeyMap[ImGuiKey_Enter] = 13;
-    io.KeyMap[ImGuiKey_Escape] = 27;
-    io.KeyMap[ImGuiKey_A] = 97;
-    io.KeyMap[ImGuiKey_C] = 99;
-    io.KeyMap[ImGuiKey_V] = 118;
-    io.KeyMap[ImGuiKey_X] = 120;
-    io.KeyMap[ImGuiKey_Y] = 121;
-    io.KeyMap[ImGuiKey_Z] = 122;
+    io.KeyMap[ImGuiKey_Tab]         = 43;
+    io.KeyMap[ImGuiKey_LeftArrow]   = 80;
+    io.KeyMap[ImGuiKey_RightArrow]  = 79;
+    io.KeyMap[ImGuiKey_UpArrow]     = 82;
+    io.KeyMap[ImGuiKey_DownArrow]   = 81;
+    io.KeyMap[ImGuiKey_PageUp]      = 75;
+    io.KeyMap[ImGuiKey_PageDown]    = 78;
+    io.KeyMap[ImGuiKey_Home]        = 74;
+    io.KeyMap[ImGuiKey_End]         = 77;
+    io.KeyMap[ImGuiKey_Insert]      = 73;
+    io.KeyMap[ImGuiKey_Delete]      = 76;
+    io.KeyMap[ImGuiKey_Backspace]   = 8;
+    io.KeyMap[ImGuiKey_Space]       = 32;
+    io.KeyMap[ImGuiKey_Enter]       = 13;
+    io.KeyMap[ImGuiKey_Escape]      = 27;
+    io.KeyMap[ImGuiKey_A]           = 97;
+    io.KeyMap[ImGuiKey_C]           = 99;
+    io.KeyMap[ImGuiKey_V]           = 118;
+    io.KeyMap[ImGuiKey_X]           = 120;
+    io.KeyMap[ImGuiKey_Y]           = 121;
+    io.KeyMap[ImGuiKey_Z]           = 122;
 
     ImGui::StyleColorsDark();
 
