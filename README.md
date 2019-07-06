@@ -4,9 +4,15 @@
 
 This is a small library that allows to stream a Dear ImGui scene to multiple WebSocket clients at once. This is achieved by sending Dear ImGui's DrawData structure which is then rendered in the browser using WebGL. To reduce the amount of network traffic, we send only the diffs between sequential frames.
 
+## Live demo:
+
+http://85.90.246.132:5001/
+
+This is a headless Dear ImGui application running on a [Linode 2GB](https://www.linode.com/pricing) instance.
+
 ## Usage
 
-```
+```cpp
 #include "imgui-ws.h"
 ...
 // initialize an instance of the http/WS server
@@ -27,7 +33,7 @@ imguiWS.setDrawData(ImGui::GetDrawData());
 
 ## Building & running
 
-```
+```bash
 # build
 git clone https://github.com/ggerganov/imgui-ws --recursive
 cd imgui-ws && mkdir build && cd build
@@ -35,7 +41,7 @@ cmake ..
 make
 
 # running
-./src/imgui-ws
+./bin/headless-with-input 5000
 ```
 
 Open some browsers and point them to http://localhost:5000/
@@ -47,14 +53,6 @@ Open some browsers and point them to http://localhost:5000/
 ## Screenshot 
 
  <a href="https://i.imgur.com/TVxj8cf.png" target="_blank">![imgui-ws](https://i.imgur.com/TVxj8cf.png)</a>
-
-## Live demo
-
-If you are lucky the following server might be up and running.
-
-**Note:** the page can stream relatively big amount of traffic:
-
-http://95.111.37.39:5000/
 
 ## Credits
  - This project is heavily inspired by https://github.com/JordiRos/remoteimgui
