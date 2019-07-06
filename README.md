@@ -14,8 +14,10 @@ http://85.90.246.132:5001/
 
 ## Usage
 
+The [most basic usage](https://github.com/ggerganov/imgui-ws/tree/master/examples/headless) is similar to the following:
+
 ```cpp
-#include "imgui-ws.h"
+#include "imgui-ws/imgui-ws.h"
 ...
 // initialize an instance of the http/WS server
 ImGuiWS imguiWS;
