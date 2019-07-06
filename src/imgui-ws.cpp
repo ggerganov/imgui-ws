@@ -37,7 +37,7 @@ struct ImGuiWS::Impl {
 
     struct Data {
         std::map<TextureId, Texture> textures;
-        std::vector<char> drawDataBuffer;
+        std::vector<std::vector<char>> drawListBuffers;
     };
 
     Data dataWrite;
@@ -83,12 +83,24 @@ bool ImGuiWS::init(int port, const char * pathHttp) {
     });
 
     // get imgui's draw data
-    m_impl->incppect.var("imgui.draw_data", [this](const auto & ) {
+    m_impl->incppect.var("imgui.n_draw_lists", [this](const auto & ) {
+        std::shared_lock lock(m_impl->mutex);
+
+        return Incppect::view(m_impl->dataRead.drawListBuffers.size());
+    });
+
+    m_impl->incppect.var("imgui.draw_list[%d]", [this](const auto & idxs) {
         static std::vector<char> data;
         {
             std::shared_lock lock(m_impl->mutex);
+
+            if (idxs[0] >= m_impl->dataRead.drawListBuffers.size()) {
+                return std::string_view { nullptr, 0 };
+            }
+
             data.clear();
-            std::copy(m_impl->dataRead.drawDataBuffer.data(), m_impl->dataRead.drawDataBuffer.data() + m_impl->dataRead.drawDataBuffer.size(),
+            std::copy(m_impl->dataRead.drawListBuffers[idxs[0]].data(),
+                      m_impl->dataRead.drawListBuffers[idxs[0]].data() + m_impl->dataRead.drawListBuffers[idxs[0]].size(),
                       std::back_inserter(data));
         }
 
@@ -224,76 +236,81 @@ bool ImGuiWS::setTexture(TextureId textureId, int32_t width, int32_t height, con
     return true;
 }
 
+namespace {
+void writeCmdListToBuffer(const ImDrawList * cmdList, std::vector<char> & buf) {
+    float offsetX = cmdList->VtxBuffer[0].pos.x;
+    float offsetY = cmdList->VtxBuffer[0].pos.y;
+
+    std::copy((char *)(&offsetX), (char *)(&offsetX) + sizeof(offsetX), std::back_inserter(buf));
+    std::copy((char *)(&offsetY), (char *)(&offsetY) + sizeof(offsetY), std::back_inserter(buf));
+
+    uint32_t nVertices = cmdList->VtxBuffer.Size;
+
+    for (int i = 0; i < nVertices; ++i) {
+        cmdList->VtxBuffer.Data[i].pos.x -= offsetX;
+        cmdList->VtxBuffer.Data[i].pos.y -= offsetY;
+    }
+
+    std::copy((char *)(&nVertices), (char *)(&nVertices) + sizeof(nVertices), std::back_inserter(buf));
+    std::copy((char *)(cmdList->VtxBuffer.Data), (char *)(cmdList->VtxBuffer.Data) + nVertices*sizeof(ImDrawVert), std::back_inserter(buf));
+
+    for (int i = 0; i < nVertices; ++i) {
+        cmdList->VtxBuffer.Data[i].pos.x += offsetX;
+        cmdList->VtxBuffer.Data[i].pos.y += offsetY;
+    }
+
+    uint32_t nIndicesOriginal = cmdList->IdxBuffer.Size;
+    uint32_t nIndices = cmdList->IdxBuffer.Size;
+    if (nIndicesOriginal % 2 == 1) {
+        ++nIndices;
+    }
+    std::copy((char *)(&nIndices), (char *)(&nIndices) + sizeof(nIndices), std::back_inserter(buf));
+    std::copy((char *)(cmdList->IdxBuffer.Data), (char *)(cmdList->IdxBuffer.Data) + nIndicesOriginal*sizeof(ImDrawIdx), std::back_inserter(buf));
+
+    if (nIndicesOriginal % 2 == 1) {
+        uint16_t idx = 0;
+        std::copy((char *)(&idx), (char *)(&idx) + sizeof(idx), std::back_inserter(buf));
+    }
+
+    uint32_t nCmd = cmdList->CmdBuffer.Size;
+    std::copy((char *)(&nCmd), (char *)(&nCmd) + sizeof(nCmd), std::back_inserter(buf));
+
+    for (int iCmd = 0; iCmd < nCmd; iCmd++)
+    {
+        const ImDrawCmd* pcmd = &cmdList->CmdBuffer[iCmd];
+
+        uint32_t nElements = pcmd->ElemCount;
+        std::copy((char *)(&nElements), (char *)(&nElements) + sizeof(nElements), std::back_inserter(buf));
+
+        uint32_t textureId = (uint32_t)(intptr_t)pcmd->TextureId;
+        std::copy((char *)(&textureId), (char *)(&textureId) + sizeof(textureId), std::back_inserter(buf));
+
+        uint32_t offsetVtx = (uint32_t)(intptr_t)pcmd->VtxOffset;
+        std::copy((char *)(&offsetVtx), (char *)(&offsetVtx) + sizeof(offsetVtx), std::back_inserter(buf));
+
+        uint32_t offsetIdx = (uint32_t)(intptr_t)pcmd->IdxOffset;
+        std::copy((char *)(&offsetIdx), (char *)(&offsetIdx) + sizeof(offsetIdx), std::back_inserter(buf));
+
+        auto clipRect = &pcmd->ClipRect;
+        std::copy((char *)(clipRect), (char *)(clipRect) + sizeof(ImVec4), std::back_inserter(buf));
+    }
+}
+}
+
 bool ImGuiWS::setDrawData(const ImDrawData * drawData) {
-    m_impl->dataWrite.drawDataBuffer.clear();
+    auto & bufs = m_impl->dataWrite.drawListBuffers;
 
     uint32_t nCmdLists = drawData->CmdListsCount;
-    std::copy((char *)(&nCmdLists), (char *)(&nCmdLists) + sizeof(nCmdLists), std::back_inserter(m_impl->dataWrite.drawDataBuffer));
+    bufs.resize(nCmdLists);
 
     for (int iList = 0; iList < nCmdLists; iList++) {
-        const ImDrawList* cmdList = drawData->CmdLists[iList];
-
-        float offsetX = cmdList->VtxBuffer[0].pos.x;
-        float offsetY = cmdList->VtxBuffer[0].pos.y;
-
-        std::copy((char *)(&offsetX), (char *)(&offsetX) + sizeof(offsetX), std::back_inserter(m_impl->dataWrite.drawDataBuffer));
-        std::copy((char *)(&offsetY), (char *)(&offsetY) + sizeof(offsetY), std::back_inserter(m_impl->dataWrite.drawDataBuffer));
-
-        uint32_t nVertices = cmdList->VtxBuffer.Size;
-
-        for (int i = 0; i < nVertices; ++i) {
-            cmdList->VtxBuffer.Data[i].pos.x -= offsetX;
-            cmdList->VtxBuffer.Data[i].pos.y -= offsetY;
-        }
-
-        std::copy((char *)(&nVertices), (char *)(&nVertices) + sizeof(nVertices), std::back_inserter(m_impl->dataWrite.drawDataBuffer));
-        std::copy((char *)(cmdList->VtxBuffer.Data), (char *)(cmdList->VtxBuffer.Data) + nVertices*sizeof(ImDrawVert), std::back_inserter(m_impl->dataWrite.drawDataBuffer));
-
-        for (int i = 0; i < nVertices; ++i) {
-            cmdList->VtxBuffer.Data[i].pos.x += offsetX;
-            cmdList->VtxBuffer.Data[i].pos.y += offsetY;
-        }
-
-        uint32_t nIndicesOriginal = cmdList->IdxBuffer.Size;
-        uint32_t nIndices = cmdList->IdxBuffer.Size;
-        if (nIndicesOriginal % 2 == 1) {
-            ++nIndices;
-        }
-        std::copy((char *)(&nIndices), (char *)(&nIndices) + sizeof(nIndices), std::back_inserter(m_impl->dataWrite.drawDataBuffer));
-        std::copy((char *)(cmdList->IdxBuffer.Data), (char *)(cmdList->IdxBuffer.Data) + nIndicesOriginal*sizeof(ImDrawIdx), std::back_inserter(m_impl->dataWrite.drawDataBuffer));
-
-        if (nIndicesOriginal % 2 == 1) {
-            uint16_t idx = 0;
-            std::copy((char *)(&idx), (char *)(&idx) + sizeof(idx), std::back_inserter(m_impl->dataWrite.drawDataBuffer));
-        }
-
-        uint32_t nCmd = cmdList->CmdBuffer.Size;
-        std::copy((char *)(&nCmd), (char *)(&nCmd) + sizeof(nCmd), std::back_inserter(m_impl->dataWrite.drawDataBuffer));
-
-        for (int iCmd = 0; iCmd < nCmd; iCmd++)
-        {
-            const ImDrawCmd* pcmd = &cmdList->CmdBuffer[iCmd];
-
-            uint32_t nElements = pcmd->ElemCount;
-            std::copy((char *)(&nElements), (char *)(&nElements) + sizeof(nElements), std::back_inserter(m_impl->dataWrite.drawDataBuffer));
-
-            uint32_t textureId = (uint32_t)(intptr_t)pcmd->TextureId;
-            std::copy((char *)(&textureId), (char *)(&textureId) + sizeof(textureId), std::back_inserter(m_impl->dataWrite.drawDataBuffer));
-
-            uint32_t offsetVtx = (uint32_t)(intptr_t)pcmd->VtxOffset;
-            std::copy((char *)(&offsetVtx), (char *)(&offsetVtx) + sizeof(offsetVtx), std::back_inserter(m_impl->dataWrite.drawDataBuffer));
-
-            uint32_t offsetIdx = (uint32_t)(intptr_t)pcmd->IdxOffset;
-            std::copy((char *)(&offsetIdx), (char *)(&offsetIdx) + sizeof(offsetIdx), std::back_inserter(m_impl->dataWrite.drawDataBuffer));
-
-            auto clipRect = &pcmd->ClipRect;
-            std::copy((char *)(clipRect), (char *)(clipRect) + sizeof(ImVec4), std::back_inserter(m_impl->dataWrite.drawDataBuffer));
-        }
+        bufs[iList].clear();
+        ::writeCmdListToBuffer(drawData->CmdLists[iList], bufs[iList]);
     }
 
     {
         std::unique_lock lock(m_impl->mutex);
-        m_impl->dataRead.drawDataBuffer = m_impl->dataWrite.drawDataBuffer;
+        m_impl->dataRead.drawListBuffers = bufs;
     }
 
     return true;

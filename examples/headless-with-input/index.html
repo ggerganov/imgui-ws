@@ -40,16 +40,23 @@
                         imgui_ws.init_font(tex_font_abuf);
                     }
 
-                    var draw_data_abuf = incppect.get_abuf('imgui.draw_data');
-                    if (draw_data_abuf.byteLength < 1) return;
+                    var n_draw_lists = incppect.get_int32('imgui.n_draw_lists');
+                    if (n_draw_lists < 1) return;
+
+                    var draw_lists_abuf = {};
+                    for (var i = 0; i < n_draw_lists; ++i) {
+                        draw_lists_abuf[i] = incppect.get_abuf('imgui.draw_list[%d]', i);
+                    }
+
+                    if (draw_lists_abuf[n_draw_lists - 1] && draw_lists_abuf[n_draw_lists - 1].byteLength < 1) return;
 
                     imgui_ws.gl.clearColor(0.0, 0.0, 0.0, 1.0);
                     imgui_ws.gl.clear(imgui_ws.gl.COLOR_BUFFER_BIT);
                     imgui_ws.gl.viewport(0, 0, imgui_ws.canvas.width, imgui_ws.canvas.height);
 
-                    imgui_ws.render(draw_data_abuf);
+                    imgui_ws.render(n_draw_lists, draw_lists_abuf);
 
-                    var my_id = this.get_int32('my_id[%d]', -1);
+                    var my_id = this.get_int32('my_id[%d]', -1) || 0;
 
                     output.innerHTML = '';
                     output.innerHTML += 'Your client Id: ' + my_id;

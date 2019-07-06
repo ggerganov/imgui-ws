@@ -135,7 +135,7 @@ var imgui_ws = {
         this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, width, height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, pixels);
     },
 
-    render: function(draw_data_abuf) {
+    render: function(n_cmd_lists, draw_lists_abuf) {
         // Backup GL state
         const last_active_texture = this.gl.getParameter(this.gl.ACTIVE_TEXTURE) || null;
         const last_program = this.gl.getParameter(this.gl.CURRENT_PROGRAM) || null;
@@ -154,12 +154,6 @@ var imgui_ws = {
         const last_enable_cull_face = this.gl.getParameter(this.gl.CULL_FACE) || null;
         const last_enable_depth_test = this.gl.getParameter(this.gl.DEPTH_TEST) || null;
         const last_enable_scissor_test = this.gl.getParameter(this.gl.SCISSOR_TEST) || null;
-
-        var draw_data_offset = 0;
-        var draw_data_uint8 = new Uint8Array(draw_data_abuf);
-        var draw_data_uint16 = new Uint16Array(draw_data_abuf);
-        var draw_data_uint32 = new Uint32Array(draw_data_abuf);
-        var draw_data_float = new Float32Array(draw_data_abuf);
 
         this.gl.enable(this.gl.BLEND);
         this.gl.blendEquation(this.gl.FUNC_ADD);
@@ -196,17 +190,17 @@ var imgui_ws = {
         this.gl.vertexAttribPointer(this.attribute_location_uv,       2, this.gl.FLOAT,         false, 5*4, 2*4);
         this.gl.vertexAttribPointer(this.attribute_location_color,    4, this.gl.UNSIGNED_BYTE, true,  5*4, 4*4);
 
-        var p = null;
-        var n_cmd_lists = draw_data_uint32[draw_data_offset]; draw_data_offset += 4;
         for (var i_list = 0; i_list < n_cmd_lists; ++i_list) {
-            p = new Float32Array(draw_data_abuf, draw_data_offset, 2);
+            var draw_data_offset = 0;
+
+            var p = new Float32Array(draw_lists_abuf[i_list], draw_data_offset, 2);
             var offset_x = p[0]; draw_data_offset += 4;
             var offset_y = p[1]; draw_data_offset += 4;
 
-            p = new Uint32Array(draw_data_abuf, draw_data_offset, 1);
+            p = new Uint32Array(draw_lists_abuf[i_list], draw_data_offset, 1);
             var n_vertices = p[0]; draw_data_offset += 4;
 
-            var av = new Float32Array(draw_data_abuf, draw_data_offset, 5*n_vertices);
+            var av = new Float32Array(draw_lists_abuf[i_list], draw_data_offset, 5*n_vertices);
 
             for (var k = 0; k < n_vertices; ++k) {
                 av[5*k + 0] += offset_x;
@@ -223,25 +217,25 @@ var imgui_ws = {
 
             draw_data_offset += 5*4*n_vertices;
 
-            p = new Uint32Array(draw_data_abuf, draw_data_offset, 1);
+            p = new Uint32Array(draw_lists_abuf[i_list], draw_data_offset, 1);
             var n_indices = p[0]; draw_data_offset += 4;
 
-            var ai = new Uint16Array(draw_data_abuf, draw_data_offset, n_indices);
+            var ai = new Uint16Array(draw_lists_abuf[i_list], draw_data_offset, n_indices);
             this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
             this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, ai, this.gl.STREAM_DRAW);
             draw_data_offset += 2*n_indices;
 
-            p = new Uint32Array(draw_data_abuf, draw_data_offset, 1);
+            p = new Uint32Array(draw_lists_abuf[i_list], draw_data_offset, 1);
             var n_cmd = p[0]; draw_data_offset += 4;
 
             for (var i_cmd = 0; i_cmd < n_cmd; ++i_cmd) {
-                var pi = new Uint32Array(draw_data_abuf, draw_data_offset, 4);
+                var pi = new Uint32Array(draw_lists_abuf[i_list], draw_data_offset, 4);
                 var n_elements = pi[0]; draw_data_offset += 4;
                 var texture_id = pi[1]; draw_data_offset += 4;
                 var offset_vtx = pi[2]; draw_data_offset += 4;
                 var offset_idx = pi[3]; draw_data_offset += 4;
 
-                var pf = new Float32Array(draw_data_abuf, draw_data_offset, 4);
+                var pf = new Float32Array(draw_lists_abuf[i_list], draw_data_offset, 4);
                 var clip_x = pf[0] - clip_off_x; draw_data_offset += 4;
                 var clip_y = pf[1] - clip_off_y; draw_data_offset += 4;
                 var clip_z = pf[2] - clip_off_x; draw_data_offset += 4;
