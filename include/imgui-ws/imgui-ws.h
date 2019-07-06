@@ -31,16 +31,25 @@ class ImGuiWS {
                 MouseMove,
                 MouseDown,
                 MouseUp,
+                MouseWheel,
+                KeyPress,
+                KeyDown,
+                KeyUp,
             };
 
             Type type = Unknown;
 
             int32_t clientId = -1;
 
-            float mouse_x = 0.0;
-            float mouse_y = 0.0;
+            float mouse_x = 0.0f;
+            float mouse_y = 0.0f;
 
-            int mouse_but = 0;
+            float wheel_x = 0.0f;
+            float wheel_y = 0.0f;
+
+            int32_t mouse_but = 0;
+
+            int32_t key = 0;
 
             std::string ip;
         };

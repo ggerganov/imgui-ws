@@ -149,6 +149,34 @@ bool ImGuiWS::init(int port, const char * pathHttp) {
                                 ss >> event.mouse_but;
                             }
                             break;
+                        case 3:
+                            {
+                                // mouse wheel
+                                event.type = Event::MouseWheel;
+                                ss >> event.wheel_x >> event.wheel_y;
+                            }
+                            break;
+                        case 4:
+                            {
+                                // key press
+                                event.type = Event::KeyPress;
+                                ss >> event.key;
+                            }
+                            break;
+                        case 5:
+                            {
+                                // key down
+                                event.type = Event::KeyDown;
+                                ss >> event.key;
+                            }
+                            break;
+                        case 6:
+                            {
+                                // key up
+                                event.type = Event::KeyUp;
+                                ss >> event.key;
+                            }
+                            break;
                         default:
                             {
                                 printf("Unknown input received from client: id = %d, type = %d\n", clientId, type);

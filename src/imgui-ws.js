@@ -12,34 +12,49 @@ var imgui_ws = {
     attribute_location_uv: null,
     attribute_location_color: null,
 
+    device_pixel_ratio: window.device_pixel_ratio || 1,
+
     tex_font_id: null,
 
     io: {
         mouse_x: 0.0,
         mouse_y: 0.0,
-        mouse_left_down: 0,
 
         want_capture_mouse: true,
+        want_capture_keyboard: true,
     },
 
     init: function(canvas_name) {
         this.canvas = document.getElementById(canvas_name);
-        this.gl = this.canvas.getContext('webgl');
 
+        var onkeyup = this.canvas_on_keyup.bind(this);
+        var onkeydown = this.canvas_on_keydown.bind(this);
+        var onkeypress = this.canvas_on_keypress.bind(this);
         var onpointermove = this.canvas_on_pointermove.bind(this);
         var onpointerdown = this.canvas_on_pointerdown.bind(this);
         var onpointerup = this.canvas_on_pointerup.bind(this);
+        var onwheel = this.canvas_on_wheel.bind(this);
 
-        this.canvas.style.touchAction = "none"; // Disable browser handling of all panning and zooming gestures.
-        //this.canvas.addEventListener("blur", this.canvas_on_blur);
-        //this.canvas.addEventListener("keydown", this.canvas_on_keydown);
-        //this.canvas.addEventListener("keyup", this.canvas_on_keyup);
-        //this.canvas.addEventListener("keypress", this.canvas_on_keypress);
-        this.canvas.addEventListener("pointermove", onpointermove);
-        this.canvas.addEventListener("pointerdown", onpointerdown);
-        this.canvas.addEventListener("pointerup", onpointerup);
-        //this.canvas.addEventListener("contextmenu", this.canvas_on_contextmenu);
-        //this.canvas.addEventListener("wheel", this.canvas_on_wheel);
+        this.canvas.style.touchAction = 'none'; // Disable browser handling of all panning and zooming gestures.
+        //this.canvas.addEventListener('blur', this.canvas_on_blur);
+
+        this.canvas.addEventListener('keyup', onkeyup, true);
+        this.canvas.addEventListener('keydown', onkeydown, true);
+        this.canvas.addEventListener('keypress', onkeypress, true);
+
+        this.canvas.addEventListener('pointermove', onpointermove);
+        this.canvas.addEventListener('mousemove', onpointermove);
+
+        this.canvas.addEventListener('pointerdown', onpointerdown);
+        this.canvas.addEventListener('mousedown', onpointerdown);
+
+        this.canvas.addEventListener('pointerup', onpointerup);
+        this.canvas.addEventListener('mouseup', onpointerup);
+
+        this.canvas.addEventListener('contextmenu', function(event) { event.preventDefault(); });
+        this.canvas.addEventListener('wheel', onwheel, false);
+
+        this.gl = this.canvas.getContext('webgl');
 
         this.vertex_buffer = this.gl.createBuffer();
         this.index_buffer = this.gl.createBuffer();
@@ -236,7 +251,11 @@ var imgui_ws = {
         (last_scissor_box !== null) && this.gl.scissor(last_scissor_box[0], last_scissor_box[1], last_scissor_box[2], last_scissor_box[3]);
     },
 
+    canvas_on_keyup: function(event) {},
+    canvas_on_keydown: function(event) {},
+    canvas_on_keypress: function(event) {},
     canvas_on_pointermove: function(event) {},
     canvas_on_pointerdown: function(event) {},
     canvas_on_pointerup: function(event) {},
+    canvas_on_wheel: function(event) {},
 }
