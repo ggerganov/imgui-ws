@@ -5,13 +5,10 @@
 
 #pragma once
 
-#include <map>
-#include <mutex>
 #include <vector>
-#include <thread>
-#include <shared_mutex>
 #include <queue>
 #include <string>
+#include <memory>
 
 class ImGuiWS {
     public:
@@ -48,19 +45,6 @@ class ImGuiWS {
             std::string ip;
         };
 
-        struct Events {
-            std::deque<Event> data;
-
-            std::mutex mutex;
-            std::condition_variable cv;
-
-            void push(Event && event) {
-                std::lock_guard<std::mutex> lock(mutex);
-                data.push_back(std::move(event));
-                cv.notify_one();
-            }
-        };
-
         ImGuiWS();
         ~ImGuiWS();
 
@@ -68,22 +52,11 @@ class ImGuiWS {
         bool setTexture(TextureId textureId, int32_t width, int32_t height, const char * data);
         bool setDrawData(const struct ImDrawData * drawData);
 
-        std::deque<Event> && takeEvents() {
-            std::lock_guard<std::mutex> lock(m_events.mutex);
-            return std::move(m_events.data);
-        }
+        int32_t nConnected() const;
+
+        std::deque<Event> && takeEvents();
 
     private:
-        std::thread m_worker;
-        mutable std::shared_mutex m_mutex;
-
-        struct Data {
-            std::map<TextureId, Texture> textures;
-            std::vector<char> drawDataBuffer;
-        };
-
-        Data m_dataWrite;
-        Data m_dataRead;
-
-        Events m_events;
+        struct Impl;
+        std::unique_ptr<Impl> m_impl;
 };

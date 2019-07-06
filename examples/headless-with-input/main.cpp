@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <map>
+
 struct State {
     bool showDemoWindow = true;
 
@@ -107,7 +109,10 @@ int main(int argc, char ** argv) {
         // store ImDrawData for asynchronous dispatching to WS clients
         imguiWS.setDrawData(ImGui::GetDrawData());
 
-        vsync.wait();
+        // if not clients are connected, just sleep to save CPU
+        do {
+            vsync.wait();
+        } while (imguiWS.nConnected() == 0);
     }
 
     ImGui::DestroyContext();

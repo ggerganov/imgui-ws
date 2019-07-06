@@ -42,6 +42,7 @@ int main(int argc, char ** argv) {
         ImGui::SetNextWindowPos({ 20, 20 });
         ImGui::SetNextWindowSize({ 400, 100 });
         ImGui::Begin("Hello, world!");
+        ImGui::Text("Connected clients: %d", imguiWS.nConnected());
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::End();
 
@@ -54,7 +55,10 @@ int main(int argc, char ** argv) {
         // store ImDrawData for asynchronous dispatching to WS clients
         imguiWS.setDrawData(ImGui::GetDrawData());
 
-        vsync.wait();
+        // if not clients are connected, just sleep to save CPU
+        do {
+            vsync.wait();
+        } while (imguiWS.nConnected() == 0);
     }
 
     ImGui::DestroyContext();
