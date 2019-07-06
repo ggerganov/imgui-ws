@@ -1,3 +1,5 @@
+ [![Build Status](https://travis-ci.org/ggerganov/imgui-ws.svg?branch=master)](https://travis-ci.org/ggerganov/imgui-ws?branch=master)
+
 # imgui-ws
 
 [Dear ImGui](https://github.com/ocornut/imgui) over WebSockets
@@ -6,7 +8,7 @@ This is a small library that allows to stream a Dear ImGui scene to multiple Web
 
 ## Live demo
 
-This is a headless Dear ImGui application running on a [Linode 2GB](https://www.linode.com/pricing) instance:
+This is a [headless Dear ImGui application](https://github.com/ggerganov/imgui-ws/tree/master/examples/headless-with-input) running on a [Linode 2GB](https://www.linode.com/pricing) instance:
 
 http://85.90.246.132:5001/
 
