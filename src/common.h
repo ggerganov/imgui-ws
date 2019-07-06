@@ -199,12 +199,28 @@ var imgui_ws = {
         var p = null;
         var n_cmd_lists = draw_data_uint32[draw_data_offset]; draw_data_offset += 4;
         for (var i_list = 0; i_list < n_cmd_lists; ++i_list) {
+            p = new Float32Array(draw_data_abuf, draw_data_offset, 2);
+            var offset_x = p[0]; draw_data_offset += 4;
+            var offset_y = p[1]; draw_data_offset += 4;
+
             p = new Uint32Array(draw_data_abuf, draw_data_offset, 1);
             var n_vertices = p[0]; draw_data_offset += 4;
 
             var av = new Float32Array(draw_data_abuf, draw_data_offset, 5*n_vertices);
+
+            for (var k = 0; k < n_vertices; ++k) {
+                av[5*k + 0] += offset_x;
+                av[5*k + 1] += offset_y;
+            }
+
             this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertex_buffer);
             this.gl.bufferData(this.gl.ARRAY_BUFFER, av, this.gl.STREAM_DRAW);
+
+            for (var k = 0; k < n_vertices; ++k) {
+                av[5*k + 0] -= offset_x;
+                av[5*k + 1] -= offset_y;
+            }
+
             draw_data_offset += 5*4*n_vertices;
 
             p = new Uint32Array(draw_data_abuf, draw_data_offset, 1);

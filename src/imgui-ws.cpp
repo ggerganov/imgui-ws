@@ -233,9 +233,26 @@ bool ImGuiWS::setDrawData(const ImDrawData * drawData) {
     for (int iList = 0; iList < nCmdLists; iList++) {
         const ImDrawList* cmdList = drawData->CmdLists[iList];
 
+        float offsetX = cmdList->VtxBuffer[0].pos.x;
+        float offsetY = cmdList->VtxBuffer[0].pos.y;
+
+        std::copy((char *)(&offsetX), (char *)(&offsetX) + sizeof(offsetX), std::back_inserter(m_impl->dataWrite.drawDataBuffer));
+        std::copy((char *)(&offsetY), (char *)(&offsetY) + sizeof(offsetY), std::back_inserter(m_impl->dataWrite.drawDataBuffer));
+
         uint32_t nVertices = cmdList->VtxBuffer.Size;
+
+        for (int i = 0; i < nVertices; ++i) {
+            cmdList->VtxBuffer.Data[i].pos.x -= offsetX;
+            cmdList->VtxBuffer.Data[i].pos.y -= offsetY;
+        }
+
         std::copy((char *)(&nVertices), (char *)(&nVertices) + sizeof(nVertices), std::back_inserter(m_impl->dataWrite.drawDataBuffer));
         std::copy((char *)(cmdList->VtxBuffer.Data), (char *)(cmdList->VtxBuffer.Data) + nVertices*sizeof(ImDrawVert), std::back_inserter(m_impl->dataWrite.drawDataBuffer));
+
+        for (int i = 0; i < nVertices; ++i) {
+            cmdList->VtxBuffer.Data[i].pos.x += offsetX;
+            cmdList->VtxBuffer.Data[i].pos.y += offsetY;
+        }
 
         uint32_t nIndicesOriginal = cmdList->IdxBuffer.Size;
         uint32_t nIndices = cmdList->IdxBuffer.Size;
