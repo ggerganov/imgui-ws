@@ -11,6 +11,7 @@
 #include <thread>
 #include <shared_mutex>
 #include <queue>
+#include <string>
 
 class ImGuiWS {
     public:
