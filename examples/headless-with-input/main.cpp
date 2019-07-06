@@ -196,14 +196,18 @@ void State::handle(ImGuiWS::Event && event) {
         case ImGuiWS::Event::KeyUp:
             {
                 if (event.clientId == curIdControl) {
-                    lastKeysDown[event.key] = false;
+                    if (event.key > 0) {
+                        lastKeysDown[event.key] = false;
+                    }
                 }
             }
             break;
         case ImGuiWS::Event::KeyDown:
             {
                 if (event.clientId == curIdControl) {
-                    lastKeysDown[event.key] = true;
+                    if (event.key > 0) {
+                        lastKeysDown[event.key] = true;
+                    }
                 }
             }
             break;
