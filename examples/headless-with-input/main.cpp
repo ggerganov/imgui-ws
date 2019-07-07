@@ -181,6 +181,8 @@ void State::handle(ImGuiWS::Event && event) {
             {
                 if (event.clientId == curIdControl) {
                     lastMouseDown[event.mouse_but] = true;
+                    lastMousePos.x = event.mouse_x;
+                    lastMousePos.y = event.mouse_y;
                 }
             }
             break;
@@ -188,6 +190,8 @@ void State::handle(ImGuiWS::Event && event) {
             {
                 if (event.clientId == curIdControl) {
                     lastMouseDown[event.mouse_but] = false;
+                    lastMousePos.x = event.mouse_x;
+                    lastMousePos.y = event.mouse_y;
                 }
             }
             break;

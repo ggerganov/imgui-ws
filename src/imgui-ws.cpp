@@ -138,27 +138,30 @@ bool ImGuiWS::init(int port, const char * pathHttp) {
                     int type = -1;
                     ss >> type;
 
-                    //printf("Received event %d\n", type);
+                    //printf("Received event %d '%s'\n", type, ss.str().c_str());
                     switch (type) {
                         case 0:
                             {
                                 // mouse move
                                 event.type = Event::MouseMove;
                                 ss >> event.mouse_x >> event.mouse_y;
+                                //printf("    mouse %g %g\n", event.mouse_x, event.mouse_y);
                             }
                             break;
                         case 1:
                             {
                                 // mouse down
                                 event.type = Event::MouseDown;
-                                ss >> event.mouse_but;
+                                ss >> event.mouse_but >> event.mouse_x >> event.mouse_y;
+                                //printf("    mouse %d down\n", event.mouse_but);
                             }
                             break;
                         case 2:
                             {
                                 // mouse up
                                 event.type = Event::MouseUp;
-                                ss >> event.mouse_but;
+                                ss >> event.mouse_but >> event.mouse_x >> event.mouse_y;
+                                //printf("    mouse %d up\n", event.mouse_but);
                             }
                             break;
                         case 3:

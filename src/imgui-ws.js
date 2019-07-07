@@ -38,8 +38,9 @@ var imgui_ws = {
         var onpointerdown = this.canvas_on_pointerdown.bind(this);
         var onpointerup = this.canvas_on_pointerup.bind(this);
         var onwheel = this.canvas_on_wheel.bind(this);
+        var ontouch = this.canvas_on_touch.bind(this);
 
-        this.canvas.style.touchAction = 'none'; // Disable browser handling of all panning and zooming gestures.
+        //this.canvas.style.touchAction = 'none'; // Disable browser handling of all panning and zooming gestures.
         //this.canvas.addEventListener('blur', this.canvas_on_blur);
 
         this.canvas.addEventListener('keyup', onkeyup, true);
@@ -57,6 +58,11 @@ var imgui_ws = {
 
         this.canvas.addEventListener('contextmenu', function(event) { event.preventDefault(); });
         this.canvas.addEventListener('wheel', onwheel, false);
+
+        this.canvas.addEventListener('touchstart', ontouch);
+        this.canvas.addEventListener('touchmove', ontouch);
+        this.canvas.addEventListener('touchend', ontouch);
+        this.canvas.addEventListener('touchcancel', ontouch);
 
         this.gl = this.canvas.getContext('webgl');
 
@@ -273,6 +279,7 @@ var imgui_ws = {
     canvas_on_pointerdown: function(event) {},
     canvas_on_pointerup: function(event) {},
     canvas_on_wheel: function(event) {},
+    canvas_on_touch: function(event) {},
 
     set_incppect_handlers: function(incppect) {
         this.canvas_on_keyup = function(event) {
@@ -306,11 +313,11 @@ var imgui_ws = {
             this.io.mouse_x = event.offsetX * this.device_pixel_ratio;
             this.io.mouse_y = event.offsetY * this.device_pixel_ratio;
 
-            incppect.send('1 ' + event.button);
+            incppect.send('1 ' + event.button + ' ' + this.io.mouse_x + ' ' + this.io.mouse_y);
         };
 
         this.canvas_on_pointerup = function(event) {
-            incppect.send('2 ' + event.button);
+            incppect.send('2 ' + event.button + ' ' + this.io.mouse_x + ' ' + this.io.mouse_y);
 
             if (this.io.want_capture_mouse) {
                 event.preventDefault();
@@ -339,6 +346,33 @@ var imgui_ws = {
             if (this.io.want_capture_mouse) {
                 event.preventDefault();
             }
+        };
+
+        this.canvas_on_touch = function (event) {
+            if (event.touches.length > 1) {
+                return;
+            }
+
+            var touches = event.changedTouches,
+                first = touches[0],
+                type = "";
+
+            switch(event.type) {
+                case "touchstart": type = "mousedown"; break;
+                case "touchmove":  type = "mousemove"; break;
+                case "touchend":   type = "mouseup";   break;
+                default:           return;
+            }
+
+            // initMouseEvent(type, canBubble, cancelable, view, clickCount,
+            //                screenX, screenY, clientX, clientY, ctrlKey,
+            //                altKey, shiftKey, metaKey, button, relatedTarget);
+
+            var simulatedEvent = document.createEvent("MouseEvent");
+            simulatedEvent.initMouseEvent(type, true, true, window, 1, first.screenX, first.screenY, first.clientX, first.clientY, false, false, false, false, 0/*left*/, null);
+
+            first.target.dispatchEvent(simulatedEvent);
+            event.preventDefault();
         };
     },
 
