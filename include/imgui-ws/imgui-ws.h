@@ -63,7 +63,7 @@ class ImGuiWS {
 
         int32_t nConnected() const;
 
-        std::deque<Event> && takeEvents();
+        std::deque<Event> takeEvents();
 
     private:
         struct Impl;

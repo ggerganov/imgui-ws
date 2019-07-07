@@ -320,7 +320,8 @@ int32_t ImGuiWS::nConnected() const {
     return m_impl->incppect.nConnected();
 }
 
-std::deque<ImGuiWS::Event> && ImGuiWS::takeEvents() {
+std::deque<ImGuiWS::Event> ImGuiWS::takeEvents() {
     std::lock_guard<std::mutex> lock(m_impl->events.mutex);
-    return std::move(m_impl->events.data);
+    auto res = std::move(m_impl->events.data);
+    return res;
 }
