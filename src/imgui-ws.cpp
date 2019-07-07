@@ -32,6 +32,8 @@ struct ImGuiWS::Impl {
         }
     };
 
+    std::atomic<int32_t> nConnected = 0;
+
     std::thread worker;
     mutable std::shared_mutex mutex;
 
@@ -115,6 +117,7 @@ bool ImGuiWS::init(int port, const char * pathHttp) {
         switch (etype) {
             case Incppect::Connect:
                 {
+                    ++m_impl->nConnected;
                     event.type = Event::Connected;
                     std::stringstream ss;
                     { int a = data[0]; if (a < 0) a += 256; ss << a << "."; }
@@ -127,6 +130,7 @@ bool ImGuiWS::init(int port, const char * pathHttp) {
                 break;
             case Incppect::Disconnect:
                 {
+                    --m_impl->nConnected;
                     event.type = Event::Disconnected;
                 }
                 break;
@@ -320,7 +324,7 @@ bool ImGuiWS::setDrawData(const ImDrawData * drawData) {
 }
 
 int32_t ImGuiWS::nConnected() const {
-    return m_impl->incppect.nConnected();
+    return m_impl->nConnected;
 }
 
 std::deque<ImGuiWS::Event> ImGuiWS::takeEvents() {
