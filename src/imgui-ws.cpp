@@ -59,7 +59,7 @@ ImGuiWS::~ImGuiWS() {
 }
 
 bool ImGuiWS::init(int port, const char * pathHttp) {
-    m_impl->incppect.var("my_id[%d]", [this](const auto & idxs) {
+    m_impl->incppect.var("my_id[%d]", [](const auto & idxs) {
         static int32_t id;
         id = idxs[0];
         return Incppect::view(id);
@@ -94,7 +94,7 @@ bool ImGuiWS::init(int port, const char * pathHttp) {
         {
             std::shared_lock lock(m_impl->mutex);
 
-            if (idxs[0] >= m_impl->dataRead.drawListBuffers.size()) {
+            if (idxs[0] >= (int) m_impl->dataRead.drawListBuffers.size()) {
                 return std::string_view { nullptr, 0 };
             }
 
@@ -246,7 +246,7 @@ void writeCmdListToBuffer(const ImDrawList * cmdList, std::vector<char> & buf) {
 
     uint32_t nVertices = cmdList->VtxBuffer.Size;
 
-    for (int i = 0; i < nVertices; ++i) {
+    for (uint32_t i = 0; i < nVertices; ++i) {
         cmdList->VtxBuffer.Data[i].pos.x -= offsetX;
         cmdList->VtxBuffer.Data[i].pos.y -= offsetY;
     }
@@ -254,7 +254,7 @@ void writeCmdListToBuffer(const ImDrawList * cmdList, std::vector<char> & buf) {
     std::copy((char *)(&nVertices), (char *)(&nVertices) + sizeof(nVertices), std::back_inserter(buf));
     std::copy((char *)(cmdList->VtxBuffer.Data), (char *)(cmdList->VtxBuffer.Data) + nVertices*sizeof(ImDrawVert), std::back_inserter(buf));
 
-    for (int i = 0; i < nVertices; ++i) {
+    for (uint32_t i = 0; i < nVertices; ++i) {
         cmdList->VtxBuffer.Data[i].pos.x += offsetX;
         cmdList->VtxBuffer.Data[i].pos.y += offsetY;
     }
@@ -275,7 +275,7 @@ void writeCmdListToBuffer(const ImDrawList * cmdList, std::vector<char> & buf) {
     uint32_t nCmd = cmdList->CmdBuffer.Size;
     std::copy((char *)(&nCmd), (char *)(&nCmd) + sizeof(nCmd), std::back_inserter(buf));
 
-    for (int iCmd = 0; iCmd < nCmd; iCmd++)
+    for (uint32_t iCmd = 0; iCmd < nCmd; iCmd++)
     {
         const ImDrawCmd* pcmd = &cmdList->CmdBuffer[iCmd];
 
@@ -303,7 +303,7 @@ bool ImGuiWS::setDrawData(const ImDrawData * drawData) {
     uint32_t nCmdLists = drawData->CmdListsCount;
     bufs.resize(nCmdLists);
 
-    for (int iList = 0; iList < nCmdLists; iList++) {
+    for (uint32_t iList = 0; iList < nCmdLists; iList++) {
         bufs[iList].clear();
         ::writeCmdListToBuffer(drawData->CmdLists[iList], bufs[iList]);
     }
