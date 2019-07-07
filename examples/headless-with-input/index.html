@@ -6,60 +6,19 @@
 
     <body style="font-family: Georgia, serif;">
         <script>
-            var has_font = false;
-            var tex_font_abuf = null;
-
             function init() {
-                window.addEventListener('pointermove', function(event) {}, true);
-                window.addEventListener('mousemove', function(event) {}, true);
-
-                window.addEventListener('pointerdown', function(event) {}, true);
-                window.addEventListener('mousedown', function(event) {}, true);
-
-                window.addEventListener('pointerup', function(event) {}, true);
-                window.addEventListener('mouseup', function(event) {}, true);
-
-                window.addEventListener('keyup', function(event) {}, true);
-                window.addEventListener('keydown', function(event) {}, true);
-                window.addEventListener('keypress', function(event) {}, true);
-
-                window.addEventListener('wheel', function(event) {}, true);
-
                 var output = document.getElementById('client-info');
 
                 incppect.render = function() {
-                    if (tex_font_abuf === null || tex_font_abuf.byteLength < 1) {
-                        tex_font_abuf = incppect.get_abuf('imgui.textures[%d]', 1);
-                        if (tex_font_abuf.byteLength < 1) return;
-                        return;
-                    }
-
-                    if (has_font == false) {
-                        has_font = true;
-
-                        imgui_ws.init_font(tex_font_abuf);
-                    }
-
-                    var n_draw_lists = incppect.get_int32('imgui.n_draw_lists');
-                    if (n_draw_lists < 1) return;
-
-                    var draw_lists_abuf = {};
-                    for (var i = 0; i < n_draw_lists; ++i) {
-                        draw_lists_abuf[i] = incppect.get_abuf('imgui.draw_list[%d]', i);
-                    }
-
-                    if (draw_lists_abuf[n_draw_lists - 1] && draw_lists_abuf[n_draw_lists - 1].byteLength < 1) return;
-
-                    imgui_ws.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                    imgui_ws.gl.clearColor(0.45, 0.55, 0.60, 1.00);
                     imgui_ws.gl.clear(imgui_ws.gl.COLOR_BUFFER_BIT);
-                    imgui_ws.gl.viewport(0, 0, imgui_ws.canvas.width, imgui_ws.canvas.height);
 
-                    imgui_ws.render(n_draw_lists, draw_lists_abuf);
+                    imgui_ws.incppect_tex_font(this);
+                    imgui_ws.incppect_draw_lists(this);
+                    imgui_ws.render();
 
                     var my_id = this.get_int32('my_id[%d]', -1) || 0;
-
-                    output.innerHTML = '';
-                    output.innerHTML += 'Your client Id: ' + my_id;
+                    output.innerHTML = 'Your client Id: ' + my_id;
                 }
 
                 incppect.onerror = function(evt) {
@@ -71,78 +30,10 @@
                     }
                 }
 
-                incppect.onopen = function(evt) {
-                }
-
                 incppect.k_requests_update_freq_ms = document.getElementById('update_freq_ms').value;
                 incppect.init();
 
-                imgui_ws.canvas_on_keyup = function(event) {
-                    incppect.send('6 ' + event.keyCode);
-                };
-
-                imgui_ws.canvas_on_keydown = function(event) {
-                    incppect.send('5 ' + event.keyCode);
-                };
-
-                imgui_ws.canvas_on_keypress = function(event) {
-                    incppect.send('4 ' + event.keyCode);
-
-                    if (this.io.want_capture_mouse) {
-                        event.preventDefault();
-                    }
-                };
-
-                imgui_ws.canvas_on_pointermove = function(event) {
-                    this.io.mouse_x = event.offsetX * this.device_pixel_ratio;
-                    this.io.mouse_y = event.offsetY * this.device_pixel_ratio;
-
-                    incppect.send('0 ' + this.io.mouse_x + ' ' + this.io.mouse_y);
-
-                    if (this.io.want_capture_keyboard) {
-                        event.preventDefault();
-                    }
-                };
-
-                imgui_ws.canvas_on_pointerdown = function(event) {
-                    this.io.mouse_x = event.offsetX * this.device_pixel_ratio;
-                    this.io.mouse_y = event.offsetY * this.device_pixel_ratio;
-
-                    incppect.send('1 ' + event.button);
-                };
-
-                imgui_ws.canvas_on_pointerup = function(event) {
-                    incppect.send('2 ' + event.button);
-
-                    if (this.io.want_capture_mouse) {
-                        event.preventDefault();
-                    }
-                };
-
-                imgui_ws.canvas_on_wheel = function(event) {
-                    let scale = 1.0;
-                    switch (event.deltaMode) {
-                        case event.DOM_DELTA_PIXEL:
-                            scale = 0.01;
-                            break;
-                        case event.DOM_DELTA_LINE:
-                            scale = 0.2;
-                            break;
-                        case event.DOM_DELTA_PAGE:
-                            scale = 1.0;
-                            break;
-                    }
-
-                    var wheel_x =  event.deltaX * scale;
-                    var wheel_y = -event.deltaY * scale;
-
-                    incppect.send('3 ' + wheel_x + ' ' + wheel_y);
-
-                    if (this.io.want_capture_mouse) {
-                        event.preventDefault();
-                    }
-                };
-
+                imgui_ws.set_incppect_handlers(incppect);
                 imgui_ws.init('canvas_main');
             }
 

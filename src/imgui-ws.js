@@ -15,6 +15,10 @@ var imgui_ws = {
     device_pixel_ratio: window.device_pixel_ratio || 1,
 
     tex_font_id: null,
+    tex_font_abuf: null,
+
+    n_draw_lists: null,
+    draw_lists_abuf: {},
 
     io: {
         mouse_x: 0.0,
@@ -100,57 +104,12 @@ var imgui_ws = {
         this.attribute_location_position = this.gl.getAttribLocation(this.shader_program,    "Position");
         this.attribute_location_uv       = this.gl.getAttribLocation(this.shader_program,    "UV");
         this.attribute_location_color    = this.gl.getAttribLocation(this.shader_program,    "Color");
-    },
-
-    init_font: function(tex_font_abuf) {
-        var tex_font_uint8 = new Uint8Array(tex_font_abuf);
-        var tex_font_int32 = new Int32Array(tex_font_abuf);
-
-        const width = tex_font_int32[2];
-        const height = tex_font_int32[3];
-
-        var pixels = new Uint8Array(4*width*height);
-        for (var i = 0; i < width*height; ++i) {
-            pixels[4*i + 3] = tex_font_uint8[16 + i];
-            pixels[4*i + 2] = 0xFF;
-            pixels[4*i + 1] = 0xFF;
-            pixels[4*i + 0] = 0xFF;
-        }
-
-        this.tex_font_id = this.gl.createTexture();
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.tex_font_id);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-        //this.gl.pixelStorei(gl.UNPACK_ROW_LENGTH); // WebGL2
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, width, height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, pixels);
-    },
-
-    render: function(n_cmd_lists, draw_lists_abuf) {
-        // Backup GL state
-        const last_active_texture = this.gl.getParameter(this.gl.ACTIVE_TEXTURE) || null;
-        const last_program = this.gl.getParameter(this.gl.CURRENT_PROGRAM) || null;
-        const last_texture = this.gl.getParameter(this.gl.TEXTURE_BINDING_2D) || null;
-        const last_array_buffer = this.gl.getParameter(this.gl.ARRAY_BUFFER_BINDING) || null;
-        const last_element_array_buffer = this.gl.getParameter(this.gl.ELEMENT_ARRAY_BUFFER_BINDING) || null;
-        const last_viewport = this.gl.getParameter(this.gl.VIEWPORT) || null;
-        const last_scissor_box = this.gl.getParameter(this.gl.SCISSOR_BOX) || null;
-        const last_blend_src_rgb = this.gl.getParameter(this.gl.BLEND_SRC_RGB) || null;
-        const last_blend_dst_rgb = this.gl.getParameter(this.gl.BLEND_DST_RGB) || null;
-        const last_blend_src_alpha = this.gl.getParameter(this.gl.BLEND_SRC_ALPHA) || null;
-        const last_blend_dst_alpha = this.gl.getParameter(this.gl.BLEND_DST_ALPHA) || null;
-        const last_blend_equation_rgb = this.gl.getParameter(this.gl.BLEND_EQUATION_RGB) || null;
-        const last_blend_equation_alpha = this.gl.getParameter(this.gl.BLEND_EQUATION_ALPHA) || null;
-        const last_enable_blend = this.gl.getParameter(this.gl.BLEND) || null;
-        const last_enable_cull_face = this.gl.getParameter(this.gl.CULL_FACE) || null;
-        const last_enable_depth_test = this.gl.getParameter(this.gl.DEPTH_TEST) || null;
-        const last_enable_scissor_test = this.gl.getParameter(this.gl.SCISSOR_TEST) || null;
 
         this.gl.enable(this.gl.BLEND);
         this.gl.blendEquation(this.gl.FUNC_ADD);
         this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
         this.gl.disable(this.gl.CULL_FACE);
         this.gl.disable(this.gl.DEPTH_TEST);
-        this.gl.enable(this.gl.SCISSOR_TEST);
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
 
         var clip_off_x = 0.0;
@@ -179,8 +138,66 @@ var imgui_ws = {
         this.gl.vertexAttribPointer(this.attribute_location_position, 2, this.gl.FLOAT,         false, 5*4, 0);
         this.gl.vertexAttribPointer(this.attribute_location_uv,       2, this.gl.FLOAT,         false, 5*4, 2*4);
         this.gl.vertexAttribPointer(this.attribute_location_color,    4, this.gl.UNSIGNED_BYTE, true,  5*4, 4*4);
+    },
 
-        for (var i_list = 0; i_list < n_cmd_lists; ++i_list) {
+    incppect_tex_font: function(incppect) {
+        if (this.tex_font_abuf === null || this.tex_font_abuf.byteLength < 1) {
+            this.tex_font_abuf = incppect.get_abuf('imgui.textures[%d]', 1);
+        } else if (this.tex_font_id === null) {
+            imgui_ws.init_font(this.tex_font_abuf);
+        }
+    },
+
+    init_font: function(tex_font_abuf) {
+        var tex_font_uint8 = new Uint8Array(tex_font_abuf);
+        var tex_font_int32 = new Int32Array(tex_font_abuf);
+
+        const width = tex_font_int32[2];
+        const height = tex_font_int32[3];
+
+        var pixels = new Uint8Array(4*width*height);
+        for (var i = 0; i < width*height; ++i) {
+            pixels[4*i + 3] = tex_font_uint8[16 + i];
+            pixels[4*i + 2] = 0xFF;
+            pixels[4*i + 1] = 0xFF;
+            pixels[4*i + 0] = 0xFF;
+        }
+
+        this.tex_font_id = this.gl.createTexture();
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.tex_font_id);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+        //this.gl.pixelStorei(gl.UNPACK_ROW_LENGTH); // WebGL2
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, width, height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, pixels);
+    },
+
+    incppect_draw_lists: function(incppect) {
+        this.n_draw_lists = incppect.get_int32('imgui.n_draw_lists');
+        if (this.n_draw_lists < 1) return;
+
+        for (var i = 0; i < this.n_draw_lists; ++i) {
+            this.draw_lists_abuf[i] = incppect.get_abuf('imgui.draw_list[%d]', i);
+        }
+    },
+
+    render: function(n_draw_lists, draw_lists_abuf) {
+        if (typeof n_draw_lists === "undefined" && typeof draw_lists_abuf === "undefined") {
+            if (this.n_draw_lists === null) return;
+            if (this.draw_lists_abuf === null) return;
+
+            this.render(this.n_draw_lists, this.draw_lists_abuf);
+
+            return;
+        }
+
+        var clip_off_x = 0.0;
+        var clip_off_y = 0.0;
+
+        this.gl.enable(this.gl.SCISSOR_TEST);
+
+        for (var i_list = 0; i_list < n_draw_lists; ++i_list) {
+            if (draw_lists_abuf[i_list].byteLength < 1) continue;
+
             var draw_data_offset = 0;
 
             var p = new Float32Array(draw_lists_abuf[i_list], draw_data_offset, 2);
@@ -243,22 +260,7 @@ var imgui_ws = {
             }
         }
 
-        (last_program !== null) && this.gl.useProgram(last_program);
-        (last_texture !== null) && this.gl.bindTexture(this.gl.TEXTURE_2D, last_texture);
-        (last_active_texture !== null) && this.gl.activeTexture(last_active_texture);
-        this.gl.disableVertexAttribArray(this.attribute_location_position);
-        this.gl.disableVertexAttribArray(this.attribute_location_uv);
-        this.gl.disableVertexAttribArray(this.attribute_location_color);
-        (last_array_buffer !== null) && this.gl.bindBuffer(this.gl.ARRAY_BUFFER, last_array_buffer);
-        (last_element_array_buffer !== null) && this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, last_element_array_buffer);
-        (last_blend_equation_rgb !== null && last_blend_equation_alpha !== null) && this.gl.blendEquationSeparate(last_blend_equation_rgb, last_blend_equation_alpha);
-        (last_blend_src_rgb !== null && last_blend_src_alpha !== null && last_blend_dst_rgb !== null && last_blend_dst_alpha !== null) && this.gl.blendFuncSeparate(last_blend_src_rgb, last_blend_src_alpha, last_blend_dst_rgb, last_blend_dst_alpha);
-        (last_enable_blend ? this.gl.enable(this.gl.BLEND) : this.gl.disable(this.gl.BLEND));
-        (last_enable_cull_face ? this.gl.enable(this.gl.CULL_FACE) : this.gl.disable(this.gl.CULL_FACE));
-        (last_enable_depth_test ? this.gl.enable(this.gl.DEPTH_TEST) : this.gl.disable(this.gl.DEPTH_TEST));
-        (last_enable_scissor_test ? this.gl.enable(this.gl.SCISSOR_TEST) : this.gl.disable(this.gl.SCISSOR_TEST));
-        (last_viewport !== null) && this.gl.viewport(last_viewport[0], last_viewport[1], last_viewport[2], last_viewport[3]);
-        (last_scissor_box !== null) && this.gl.scissor(last_scissor_box[0], last_scissor_box[1], last_scissor_box[2], last_scissor_box[3]);
+        this.gl.disable(this.gl.SCISSOR_TEST);
     },
 
     canvas_on_keyup: function(event) {},
@@ -268,4 +270,73 @@ var imgui_ws = {
     canvas_on_pointerdown: function(event) {},
     canvas_on_pointerup: function(event) {},
     canvas_on_wheel: function(event) {},
+
+    set_incppect_handlers: function(incppect) {
+        this.canvas_on_keyup = function(event) {
+            incppect.send('6 ' + event.keyCode);
+        };
+
+        this.canvas_on_keydown = function(event) {
+            incppect.send('5 ' + event.keyCode);
+        };
+
+        this.canvas_on_keypress = function(event) {
+            incppect.send('4 ' + event.keyCode);
+
+            if (this.io.want_capture_mouse) {
+                event.preventDefault();
+            }
+        };
+
+        this.canvas_on_pointermove = function(event) {
+            this.io.mouse_x = event.offsetX * this.device_pixel_ratio;
+            this.io.mouse_y = event.offsetY * this.device_pixel_ratio;
+
+            incppect.send('0 ' + this.io.mouse_x + ' ' + this.io.mouse_y);
+
+            if (this.io.want_capture_keyboard) {
+                event.preventDefault();
+            }
+        };
+
+        this.canvas_on_pointerdown = function(event) {
+            this.io.mouse_x = event.offsetX * this.device_pixel_ratio;
+            this.io.mouse_y = event.offsetY * this.device_pixel_ratio;
+
+            incppect.send('1 ' + event.button);
+        };
+
+        this.canvas_on_pointerup = function(event) {
+            incppect.send('2 ' + event.button);
+
+            if (this.io.want_capture_mouse) {
+                event.preventDefault();
+            }
+        };
+
+        this.canvas_on_wheel = function(event) {
+            let scale = 1.0;
+            switch (event.deltaMode) {
+                case event.DOM_DELTA_PIXEL:
+                    scale = 0.01;
+                    break;
+                case event.DOM_DELTA_LINE:
+                    scale = 0.2;
+                    break;
+                case event.DOM_DELTA_PAGE:
+                    scale = 1.0;
+                    break;
+            }
+
+            var wheel_x =  event.deltaX * scale;
+            var wheel_y = -event.deltaY * scale;
+
+            incppect.send('3 ' + wheel_x + ' ' + wheel_y);
+
+            if (this.io.want_capture_mouse) {
+                event.preventDefault();
+            }
+        };
+    },
+
 }
