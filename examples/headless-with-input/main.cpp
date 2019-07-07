@@ -77,7 +77,13 @@ int main(int argc, char ** argv) {
     io.KeyMap[ImGuiKey_Y]           = 121;
     io.KeyMap[ImGuiKey_Z]           = 122;
 
+    io.MouseDrawCursor = true;
+
     ImGui::StyleColorsDark();
+    ImGui::GetStyle().AntiAliasedFill = false;
+    ImGui::GetStyle().AntiAliasedLines = false;
+    ImGui::GetStyle().WindowRounding = 0.0f;
+    ImGui::GetStyle().ScrollbarRounding = 0.0f;
 
     // setup imgui-ws
     ImGuiWS imguiWS;
