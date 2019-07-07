@@ -63,7 +63,8 @@ var imgui_ws = {
         this.vertex_buffer = this.gl.createBuffer();
         this.index_buffer = this.gl.createBuffer();
 
-        var vertex_shader_source =
+        var vertex_shader_source = [
+            'precision mediump float;' +
             'uniform mat4 ProjMtx;' +
             'attribute vec2 Position;' +
             'attribute vec2 UV;' +
@@ -73,8 +74,9 @@ var imgui_ws = {
             'void main(void) {' +
             '	Frag_UV = UV;' +
             '	Frag_Color = Color;' +
-            '   gl_Position = ProjMtx * vec4(Position, 0.0, 1.0);' +
-            '}';
+            '   gl_Position = ProjMtx * vec4(Position, 0, 1);' +
+            '}'
+        ];
 
         var vertex_shader = this.gl.createShader(this.gl.VERTEX_SHADER);
         this.gl.shaderSource(vertex_shader, vertex_shader_source);
@@ -86,7 +88,7 @@ var imgui_ws = {
             'varying vec2 Frag_UV;' +
             'varying vec4 Frag_Color;' +
             'void main() {' +
-            '	gl_FragColor = Frag_Color * texture2D(Texture, Frag_UV);' +
+            '	gl_FragColor = Frag_Color * texture2D(Texture, Frag_UV.st);' +
             '}'
         ];
 
@@ -131,6 +133,7 @@ var imgui_ws = {
         this.gl.uniformMatrix4fv(this.attribute_location_proj_mtx, false, ortho_projection);
 
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertex_buffer);
+        this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
 
         this.gl.enableVertexAttribArray(this.attribute_location_position);
         this.gl.enableVertexAttribArray(this.attribute_location_uv);
