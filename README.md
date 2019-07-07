@@ -6,11 +6,14 @@
 
 This is a small library that allows to stream a Dear ImGui scene to multiple WebSocket clients at once. This is achieved by sending Dear ImGui's DrawData structure which is then rendered in the browser using WebGL. To reduce the amount of network traffic, we send only the diffs between sequential frames.
 
-## Live demo
+## Live examples
 
-This is a [headless Dear ImGui application](https://github.com/ggerganov/imgui-ws/tree/master/examples/headless-with-input) running on a [Linode 2GB](https://www.linode.com/pricing) instance:
+Thise are sample applications using **imgui-ws**, running on a [Linode 2GB](https://www.linode.com/pricing) instance:
 
-http://85.90.246.132:5001/
+| Example | URL | Description |
+| ------- | --- | ----------- |
+| [headless-with-input](https://github.com/ggerganov/imgui-ws/tree/master/examples/headless-with-input) | http://85.90.246.132:5001/ | Dear ImGui's demo app |
+| [headless](https://github.com/ggerganov/imgui-ws/tree/master/examples/headless) | http://85.90.246.132:5002/ | Basic read-only data visualization |
 
 ## Usage
 
