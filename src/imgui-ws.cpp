@@ -11,6 +11,7 @@
 
 #include "incppect/incppect.h"
 
+#include <atomic>
 #include <map>
 #include <thread>
 #include <sstream>
