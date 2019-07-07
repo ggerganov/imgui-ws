@@ -8,7 +8,7 @@ This is a small library that allows to stream a Dear ImGui scene to multiple Web
 
 ## Live examples
 
-Thise are sample applications using **imgui-ws**, running on a [Linode 2GB](https://www.linode.com/pricing) instance:
+These are sample applications using **imgui-ws**, running on a [Linode 2GB](https://www.linode.com/pricing) instance:
 
 | Example | URL | Description |
 | ------- | --- | ----------- |
