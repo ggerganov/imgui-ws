@@ -47,6 +47,20 @@ int main(int argc, char ** argv) {
         ImGui::End();
 
         ImGui::SetNextWindowPos({ 20, 140 });
+        ImGui::SetNextWindowSize({ 400, 200 });
+        ImGui::Begin("Some measured data");
+        {
+            static int idx = 0;
+            static int idx_last = 0;
+            static float data[128];
+            data[idx] = (0.8f*data[idx_last] + 0.2f*(rand()%100 + 50));
+            idx_last = idx;
+            if (++idx >= 128) idx = 0;
+            ImGui::PlotHistogram("##signal", data, 128, idx, "Some signal", 0, FLT_MAX, ImGui::GetContentRegionAvail());
+        }
+        ImGui::End();
+
+        ImGui::SetNextWindowPos({ 20, 360 });
         ImGui::ShowAboutWindow();
 
         // generate ImDrawData
