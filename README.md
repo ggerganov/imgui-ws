@@ -4,7 +4,7 @@
 
 [Dear ImGui](https://github.com/ocornut/imgui) over WebSockets
 
-This is a small library that allows to stream a Dear ImGui scene to multiple WebSocket clients at once. This is achieved by sending Dear ImGui's DrawData structure which is then rendered in the browser using WebGL. To reduce the amount of network traffic, we send only the diffs between sequential frames.
+This is a small library that allows to stream a Dear ImGui scene to multiple WebSocket clients at once. This is achieved by sending Dear ImGui's DrawData structure which is then rendered in the browser using WebGL. To reduce the amount of network traffic, we send only the diffs between sequential frames (for more info - see [#1](../../issues/1/)).
 
 ## Live examples
 
@@ -15,28 +15,33 @@ These are sample applications using **imgui-ws**, running on a [Linode 2GB](http
 | [demo-null](https://github.com/ggerganov/imgui-ws/tree/master/examples/demo-null) | http://85.90.246.132:5001/ | Dear ImGui's demo app |
 | [basic-null](https://github.com/ggerganov/imgui-ws/tree/master/examples/basic-null) | http://85.90.246.132:5002/ | Basic read-only data visualization |
 
-## Usage
+## Tools
 
-The [most basic usage](https://github.com/ggerganov/imgui-ws/tree/master/examples/basic-null) is similar to the following:
+There are a few tools that help with the development and the optimization of the ImDrawData compression:
 
-```cpp
-#include "imgui-ws/imgui-ws.h"
-...
-// initialize an instance of the http/WS server
-ImGuiWS imguiWS;
-imguiWS.init(port, pathHttp);
-...
+- [record-sdl2](https://github.com/ggerganov/imgui-ws/tree/master/tools/record-sdl2)
 
-// set the ImGui font texture, so it can be transmitted to connecting clients
-ImGui::GetIO().Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
-imguiWS.setTexture(1, width, height, (const char *) pixels);
+  Record the ImDrawData for all rendered frames in a Dear ImGui session
 
-...
-// set the ImGui DrawData, so it can be streamed to the WS clients
-ImGui::Render();
-imguiWS.setDrawData(ImGui::GetDrawData());
+      ./bin/record-sdl2 session.imdd
 
-```
+  ---
+
+- [replay-sdl2](https://github.com/ggerganov/imgui-ws/tree/master/tools/replay-sdl2)
+
+  Replay a session recorded with the **record-sdl2** tool
+
+      ./bin/replay-sdl2 session.imdd
+
+  ---
+
+- [compressor-benchmark](https://github.com/ggerganov/imgui-ws/tree/master/tools/compressor-benchmark)
+
+  Run the available ImDrawData compression algorithms on various pre-recorded Dear ImGui sessions. Reports compression ratio, average required bandwidth and cpu utilization:
+
+      ./bin/compressor-benchmark session0.imdd [session1.imdd] [session2.imdd] [...]
+
+  ---
 
 ## Building & running
 
