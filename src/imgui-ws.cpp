@@ -214,12 +214,12 @@ bool ImGuiWS::init(int port, const char * pathHttp) {
     m_impl->incppect.setResource("/imgui-ws.js", kImGuiWS_js);
 
     // start the http/websocket server
-    m_impl->worker = m_impl->incppect.runAsync(Incppect::Parameters {
-        .portListen = port,
-            .maxPayloadLength_bytes = 1024*1024,
-            .tLastRequestTimeout_ms = -1,
-            .httpRoot = pathHttp,
-    });
+    Incppect::Parameters parameters;
+    parameters.portListen = port;
+    parameters.maxPayloadLength_bytes = 1024*1024;
+    parameters.tLastRequestTimeout_ms = -1;
+    parameters.httpRoot = pathHttp;
+    m_impl->worker = m_impl->incppect.runAsync(parameters);
 
     return m_impl->worker.joinable();
 }
