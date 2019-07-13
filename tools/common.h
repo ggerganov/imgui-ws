@@ -11,7 +11,7 @@
 #include <fstream>
 
 struct Session {
-    constexpr static auto kHeader = "Dear Imgui DrawData v1.0";
+    constexpr static auto kHeader = "Dear ImGui DrawData v1.0";
 
     using FrameData = std::vector<char>;
 
@@ -199,14 +199,23 @@ struct Session {
         return true;
     }
 
-    void printInfo() const {
-        int32_t totalSize_bytes = 0;
+    int32_t nFrames() const {
+        return frames.size();
+    }
+
+    uint64_t totalSize_bytes() const {
+        uint64_t result = 0;
+
         for (auto & frame : frames) {
-            totalSize_bytes += frame.size();
+            result += frame.size();
         }
 
+        return result;
+    }
+
+    void printInfo() const {
         printf("    - Total frames      = %d\n", (int) frames.size());
-        printf("    - Total size        = %d bytes\n", (int) totalSize_bytes);
+        printf("    - Total size        = %d bytes\n", (int) totalSize_bytes());
     }
 
     std::vector<FrameData> frames;

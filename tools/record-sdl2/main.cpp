@@ -114,7 +114,6 @@ int main(int argc , char ** argv) {
         ImGui::SetNextWindowPos({ 20, 360 });
         ImGui::ShowAboutWindow();
 
-        ImGui::SetNextWindowPos({ 420, 20 });
         ImGui::ShowDemoWindow();
 
         // generate ImDrawData

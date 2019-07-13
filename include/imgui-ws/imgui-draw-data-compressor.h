@@ -50,6 +50,8 @@ protected:
 
 class XorRlePerDrawList : public Interface {
 public:
+    static constexpr auto kName = "XorRlePerDrawList";
+
     XorRlePerDrawList();
     virtual ~XorRlePerDrawList();
 
@@ -62,6 +64,8 @@ private:
 
 class XorRlePerDrawListWithVtxOffset : public Interface {
 public:
+    static constexpr auto kName = "XorRlePerDrawListWithVtxOffset";
+
     XorRlePerDrawListWithVtxOffset();
     virtual ~XorRlePerDrawListWithVtxOffset();
 

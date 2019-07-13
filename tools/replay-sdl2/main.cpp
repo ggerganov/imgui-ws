@@ -86,15 +86,17 @@ int main(int argc , char ** argv) {
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     // Main loop
+    int fid = 0;
     bool done = false;
+
     Session session;
-    session.load(argv[1]);
+    if (session.load(argv[1]) == false) {
+        fprintf(stderr, "[E] Failed reading the file. Probably not an ImDrawData session file?\n");
+        return -1;
+    }
 
     ImDrawData drawData;
-    drawData.Clear();
     std::vector<ImDrawList> drawLists;
-
-    int fid = 0;
 
     while (!done) {
         SDL_Event event;
