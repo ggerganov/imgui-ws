@@ -4,10 +4,9 @@
  */
 
 #include "imgui-ws/imgui-ws.h"
+#include "imgui-ws/imgui-draw-data-compressor.h"
 
 #include "common.h"
-
-#include "imgui/imgui.h"
 
 #include "incppect/incppect.h"
 
@@ -33,15 +32,19 @@ struct ImGuiWS::Impl {
         }
     };
 
+    struct Data {
+        std::map<TextureId, Texture> textures;
+
+        ImDrawDataCompressor::Interface::DrawLists drawLists;
+        ImDrawDataCompressor::Interface::DrawListsDiff drawListsDiff;
+    };
+
+    Impl() : compressorDrawData(new ImDrawDataCompressor::XorRlePerDrawListWithVtxOffset()) {}
+
     std::atomic<int32_t> nConnected = 0;
 
     std::thread worker;
     mutable std::shared_mutex mutex;
-
-    struct Data {
-        std::map<TextureId, Texture> textures;
-        std::vector<std::vector<char>> drawListBuffers;
-    };
 
     Data dataWrite;
     Data dataRead;
@@ -49,6 +52,8 @@ struct ImGuiWS::Impl {
     Events events;
 
     Incppect incppect;
+
+    std::unique_ptr<ImDrawDataCompressor::Interface> compressorDrawData;
 };
 
 ImGuiWS::ImGuiWS() : m_impl(new Impl()) {
@@ -89,7 +94,7 @@ bool ImGuiWS::init(int32_t port, const char * pathHttp) {
     m_impl->incppect.var("imgui.n_draw_lists", [this](const auto & ) {
         std::shared_lock lock(m_impl->mutex);
 
-        return Incppect::view(m_impl->dataRead.drawListBuffers.size());
+        return Incppect::view(m_impl->dataRead.drawLists.size());
     });
 
     m_impl->incppect.var("imgui.draw_list[%d]", [this](const auto & idxs) {
@@ -97,13 +102,13 @@ bool ImGuiWS::init(int32_t port, const char * pathHttp) {
         {
             std::shared_lock lock(m_impl->mutex);
 
-            if (idxs[0] >= (int) m_impl->dataRead.drawListBuffers.size()) {
+            if (idxs[0] >= (int) m_impl->dataRead.drawLists.size()) {
                 return std::string_view { nullptr, 0 };
             }
 
             data.clear();
-            std::copy(m_impl->dataRead.drawListBuffers[idxs[0]].data(),
-                      m_impl->dataRead.drawListBuffers[idxs[0]].data() + m_impl->dataRead.drawListBuffers[idxs[0]].size(),
+            std::copy(m_impl->dataRead.drawLists[idxs[0]].data(),
+                      m_impl->dataRead.drawLists[idxs[0]].data() + m_impl->dataRead.drawLists[idxs[0]].size(),
                       std::back_inserter(data));
         }
 
@@ -244,81 +249,20 @@ bool ImGuiWS::setTexture(TextureId textureId, int32_t width, int32_t height, con
     return true;
 }
 
-namespace {
-void writeCmdListToBuffer(const ImDrawList * cmdList, std::vector<char> & buf) {
-    float offsetX = cmdList->VtxBuffer[0].pos.x;
-    float offsetY = cmdList->VtxBuffer[0].pos.y;
-
-    std::copy((char *)(&offsetX), (char *)(&offsetX) + sizeof(offsetX), std::back_inserter(buf));
-    std::copy((char *)(&offsetY), (char *)(&offsetY) + sizeof(offsetY), std::back_inserter(buf));
-
-    uint32_t nVertices = cmdList->VtxBuffer.Size;
-
-    for (uint32_t i = 0; i < nVertices; ++i) {
-        cmdList->VtxBuffer.Data[i].pos.x -= offsetX;
-        cmdList->VtxBuffer.Data[i].pos.y -= offsetY;
-    }
-
-    std::copy((char *)(&nVertices), (char *)(&nVertices) + sizeof(nVertices), std::back_inserter(buf));
-    std::copy((char *)(cmdList->VtxBuffer.Data), (char *)(cmdList->VtxBuffer.Data) + nVertices*sizeof(ImDrawVert), std::back_inserter(buf));
-
-    for (uint32_t i = 0; i < nVertices; ++i) {
-        cmdList->VtxBuffer.Data[i].pos.x += offsetX;
-        cmdList->VtxBuffer.Data[i].pos.y += offsetY;
-    }
-
-    uint32_t nIndicesOriginal = cmdList->IdxBuffer.Size;
-    uint32_t nIndices = cmdList->IdxBuffer.Size;
-    if (nIndicesOriginal % 2 == 1) {
-        ++nIndices;
-    }
-    std::copy((char *)(&nIndices), (char *)(&nIndices) + sizeof(nIndices), std::back_inserter(buf));
-    std::copy((char *)(cmdList->IdxBuffer.Data), (char *)(cmdList->IdxBuffer.Data) + nIndicesOriginal*sizeof(ImDrawIdx), std::back_inserter(buf));
-
-    if (nIndicesOriginal % 2 == 1) {
-        uint16_t idx = 0;
-        std::copy((char *)(&idx), (char *)(&idx) + sizeof(idx), std::back_inserter(buf));
-    }
-
-    uint32_t nCmd = cmdList->CmdBuffer.Size;
-    std::copy((char *)(&nCmd), (char *)(&nCmd) + sizeof(nCmd), std::back_inserter(buf));
-
-    for (uint32_t iCmd = 0; iCmd < nCmd; iCmd++)
-    {
-        const ImDrawCmd* pcmd = &cmdList->CmdBuffer[iCmd];
-
-        uint32_t nElements = pcmd->ElemCount;
-        std::copy((char *)(&nElements), (char *)(&nElements) + sizeof(nElements), std::back_inserter(buf));
-
-        uint32_t textureId = (uint32_t)(intptr_t)pcmd->TextureId;
-        std::copy((char *)(&textureId), (char *)(&textureId) + sizeof(textureId), std::back_inserter(buf));
-
-        uint32_t offsetVtx = (uint32_t)(intptr_t)pcmd->VtxOffset;
-        std::copy((char *)(&offsetVtx), (char *)(&offsetVtx) + sizeof(offsetVtx), std::back_inserter(buf));
-
-        uint32_t offsetIdx = (uint32_t)(intptr_t)pcmd->IdxOffset;
-        std::copy((char *)(&offsetIdx), (char *)(&offsetIdx) + sizeof(offsetIdx), std::back_inserter(buf));
-
-        auto clipRect = &pcmd->ClipRect;
-        std::copy((char *)(clipRect), (char *)(clipRect) + sizeof(ImVec4), std::back_inserter(buf));
-    }
-}
-}
-
 bool ImGuiWS::setDrawData(const ImDrawData * drawData) {
-    auto & bufs = m_impl->dataWrite.drawListBuffers;
+    bool result = true;
 
-    uint32_t nCmdLists = drawData->CmdListsCount;
-    bufs.resize(nCmdLists);
+    result &= m_impl->compressorDrawData->setDrawData(drawData);
 
-    for (uint32_t iList = 0; iList < nCmdLists; iList++) {
-        bufs[iList].clear();
-        ::writeCmdListToBuffer(drawData->CmdLists[iList], bufs[iList]);
-    }
+    auto & drawLists = m_impl->compressorDrawData->getDrawLists();
+    auto & drawListsDiff = m_impl->compressorDrawData->getDrawListsDiff();
 
+    // make the draw lists available to incppect clients
     {
         std::unique_lock lock(m_impl->mutex);
-        m_impl->dataRead.drawListBuffers = bufs;
+
+        m_impl->dataRead.drawLists = std::move(drawLists);
+        m_impl->dataRead.drawListsDiff = std::move(drawListsDiff);
     }
 
     return true;

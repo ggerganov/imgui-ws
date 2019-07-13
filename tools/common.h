@@ -13,15 +13,12 @@
 struct Session {
     constexpr static auto kHeader = "Dear Imgui DrawData v1.0";
 
-    struct FrameData : public std::vector<char> {
-        using vector::vector;
-    };
+    using FrameData = std::vector<char>;
 
     bool save(const char * fname) const {
         std::ofstream fs(fname, std::ios::binary);
 
         fs.write(kHeader, strlen(kHeader));
-        fs.write((char *)(&dataType), sizeof(dataType));
 
         uint32_t nFrames = frames.size();
         fs.write((char *)(&nFrames), sizeof(nFrames));
@@ -43,8 +40,6 @@ struct Session {
         if (strcmp(header, kHeader)) {
             return false;
         }
-
-        fs.read((char *)(&dataType), sizeof(dataType));
 
         uint32_t nFrames = 0;
         fs.read((char *)(&nFrames), sizeof(nFrames));
@@ -210,12 +205,9 @@ struct Session {
             totalSize_bytes += frame.size();
         }
 
-        printf("    - ImDrawData type   = %d\n", (int) dataType);
         printf("    - Total frames      = %d\n", (int) frames.size());
         printf("    - Total size        = %d bytes\n", (int) totalSize_bytes);
     }
-
-    ImGuiWS::ImDrawDataType dataType = ImGuiWS::Default;
 
     std::vector<FrameData> frames;
 };

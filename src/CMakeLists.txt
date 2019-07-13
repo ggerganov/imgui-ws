@@ -11,6 +11,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/common.h.in ${CMAKE_CURRENT_SOURCE_DI
 
 add_library(imgui-ws SHARED
     imgui-ws.cpp
+    compressor-xor-rle-per-draw-list.cpp
+    compressor-xor-rle-per-draw-list-with-vtx-offset.cpp
     )
 
 target_include_directories(imgui-ws PUBLIC

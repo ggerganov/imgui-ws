@@ -54,17 +54,6 @@ class ImGuiWS {
             std::string ip;
         };
 
-        enum ImDrawDataType : int32_t {
-            Default,
-            DefaultWith32BitIndices,
-        };
-
-        enum DiffApproach : int32_t {
-            XorRle,
-            XorRlePerCmdList,
-            XorRlePerCmdListWithVtxPosOffset,
-        };
-
         ImGuiWS();
         ~ImGuiWS();
 
