@@ -9,6 +9,85 @@
 
 #include <vector>
 #include <fstream>
+#include <cstring>
+
+namespace {
+
+// helper functions to serialize/unserialize Dear ImGui data
+
+template<typename T>
+    inline void serialize(const T & t, std::vector<char> & buf) {
+        std::copy((char *)(&t), (char *)(&t) + sizeof(T), std::back_inserter(buf));
+    }
+
+template<>
+    inline void serialize<ImDrawCmd>(const ImDrawCmd & t, std::vector<char> & buf) {
+        serialize(t.ElemCount, buf);
+        serialize(t.ClipRect.x, buf);
+        serialize(t.ClipRect.y, buf);
+        serialize(t.ClipRect.z, buf);
+        serialize(t.ClipRect.w, buf);
+        serialize(t.TextureId, buf);
+        serialize(t.VtxOffset, buf);
+        serialize(t.IdxOffset, buf);
+    }
+
+template<typename T>
+    inline void serialize(const ImVector<T> & t, std::vector<char> & buf) {
+        uint32_t n = t.Size;
+        serialize(n, buf);
+        std::copy((char *)(t.Data), (char *)(t.Data) + n*sizeof(T), std::back_inserter(buf));
+    }
+
+template<>
+    inline void serialize<ImDrawCmd>(const ImVector<ImDrawCmd> & t, std::vector<char> & buf) {
+        uint32_t n = t.Size;
+        serialize(n, buf);
+        for (uint32_t i = 0; i < n; ++i) {
+            serialize(t[i], buf);
+        }
+    }
+
+template<typename T>
+    inline void unserialize(T & t, const std::vector<char> & buf, size_t & offset) {
+        std::memcpy((char *)(&t), buf.data() + offset, sizeof(T));
+        offset += sizeof(T);
+    }
+
+template<>
+    inline void unserialize<ImDrawCmd>(ImDrawCmd & t, const std::vector<char> & buf, size_t & offset) {
+        unserialize(t.ElemCount, buf, offset);
+        unserialize(t.ClipRect.x, buf, offset);
+        unserialize(t.ClipRect.y, buf, offset);
+        unserialize(t.ClipRect.z, buf, offset);
+        unserialize(t.ClipRect.w, buf, offset);
+        unserialize(t.TextureId, buf, offset);
+        unserialize(t.VtxOffset, buf, offset);
+        unserialize(t.IdxOffset, buf, offset);
+
+        t.UserCallback = NULL;
+    }
+
+template<typename T>
+    inline void unserialize(ImVector<T> & t, std::vector<char> & buf, size_t & offset) {
+        uint32_t n = 0;
+        unserialize(n, buf, offset);
+        t.resize(n);
+        std::memcpy((char *)(t.Data), buf.data() + offset, n*sizeof(T));
+        offset += n*sizeof(T);
+    }
+
+template<>
+    inline void unserialize<ImDrawCmd>(ImVector<ImDrawCmd> & t, std::vector<char> & buf, size_t & offset) {
+        uint32_t n = 0;
+        unserialize(n, buf, offset);
+        t.resize(n);
+        for (uint32_t i = 0; i < n; ++i) {
+            unserialize(t[i], buf, offset);
+        }
+    }
+
+}
 
 struct Session {
     constexpr static auto kHeader = "Dear ImGui DrawData v1.0";
@@ -56,99 +135,27 @@ struct Session {
         return true;
     }
 
-    template<typename T>
-    inline void insert(const T & t, std::vector<char> & buf) {
-        std::copy((char *)(&t), (char *)(&t) + sizeof(T), std::back_inserter(buf));
-    }
-
-    template<>
-    inline void insert<ImDrawCmd>(const ImDrawCmd & t, std::vector<char> & buf) {
-        insert(t.ElemCount, buf);
-        insert(t.ClipRect.x, buf);
-        insert(t.ClipRect.y, buf);
-        insert(t.ClipRect.z, buf);
-        insert(t.ClipRect.w, buf);
-        insert(t.TextureId, buf);
-        insert(t.VtxOffset, buf);
-        insert(t.IdxOffset, buf);
-    }
-
-    template<typename T>
-    inline void insert(const ImVector<T> & t, std::vector<char> & buf) {
-        uint32_t n = t.Size;
-        insert(n, buf);
-        std::copy((char *)(t.Data), (char *)(t.Data) + n*sizeof(T), std::back_inserter(buf));
-    }
-
-    template<>
-    inline void insert<ImDrawCmd>(const ImVector<ImDrawCmd> & t, std::vector<char> & buf) {
-        uint32_t n = t.Size;
-        insert(n, buf);
-        for (uint32_t i = 0; i < n; ++i) {
-            insert(t[i], buf);
-        }
-    }
-
-    template<typename T>
-    inline void read(T & t, const std::vector<char> & buf, size_t & offset) {
-        std::memcpy((char *)(&t), buf.data() + offset, sizeof(T));
-        offset += sizeof(T);
-    }
-
-    template<>
-    inline void read<ImDrawCmd>(ImDrawCmd & t, const std::vector<char> & buf, size_t & offset) {
-        read(t.ElemCount, buf, offset);
-        read(t.ClipRect.x, buf, offset);
-        read(t.ClipRect.y, buf, offset);
-        read(t.ClipRect.z, buf, offset);
-        read(t.ClipRect.w, buf, offset);
-        read(t.TextureId, buf, offset);
-        read(t.VtxOffset, buf, offset);
-        read(t.IdxOffset, buf, offset);
-
-        t.UserCallback = NULL;
-    }
-
-    template<typename T>
-    inline void read(ImVector<T> & t, std::vector<char> & buf, size_t & offset) {
-        uint32_t n = 0;
-        read(n, buf, offset);
-        t.resize(n);
-        std::memcpy((char *)(t.Data), buf.data() + offset, n*sizeof(T));
-        offset += n*sizeof(T);
-    }
-
-    template<>
-    inline void read<ImDrawCmd>(ImVector<ImDrawCmd> & t, std::vector<char> & buf, size_t & offset) {
-        uint32_t n = 0;
-        read(n, buf, offset);
-        t.resize(n);
-        for (uint32_t i = 0; i < n; ++i) {
-            read(t[i], buf, offset);
-        }
-    }
-
     bool addFrame(const ImDrawData * drawData) {
         FrameData frame;
 
-        insert(drawData->Valid, frame);
-        insert(drawData->CmdListsCount, frame);
-        insert(drawData->TotalIdxCount, frame);
-        insert(drawData->TotalVtxCount, frame);
-        insert(drawData->DisplayPos.x, frame);
-        insert(drawData->DisplayPos.y, frame);
-        insert(drawData->DisplaySize.x, frame);
-        insert(drawData->DisplaySize.y, frame);
-        insert(drawData->FramebufferScale.x, frame);
-        insert(drawData->FramebufferScale.y, frame);
+        serialize(drawData->Valid, frame);
+        serialize(drawData->CmdListsCount, frame);
+        serialize(drawData->TotalIdxCount, frame);
+        serialize(drawData->TotalVtxCount, frame);
+        serialize(drawData->DisplayPos.x, frame);
+        serialize(drawData->DisplayPos.y, frame);
+        serialize(drawData->DisplaySize.x, frame);
+        serialize(drawData->DisplaySize.y, frame);
+        serialize(drawData->FramebufferScale.x, frame);
+        serialize(drawData->FramebufferScale.y, frame);
 
         for (int32_t iList = 0; iList < drawData->CmdListsCount; ++iList) {
             auto & cmdList = drawData->CmdLists[iList];
 
-            insert(cmdList->CmdBuffer, frame);
-            insert(cmdList->VtxBuffer, frame);
-            insert(cmdList->IdxBuffer, frame);
-            insert(cmdList->Flags, frame);
+            serialize(cmdList->CmdBuffer, frame);
+            serialize(cmdList->VtxBuffer, frame);
+            serialize(cmdList->IdxBuffer, frame);
+            serialize(cmdList->Flags, frame);
         }
 
         frames.emplace_back(std::move(frame));
@@ -162,22 +169,20 @@ struct Session {
         size_t offset = 0;
         auto & buf = frames[fid];
 
-
-        read(drawData->Valid, buf, offset);
-        read(drawData->CmdListsCount, buf, offset);
-        read(drawData->TotalIdxCount, buf, offset);
-        read(drawData->TotalVtxCount, buf, offset);
-        read(drawData->DisplayPos.x, buf, offset);
-        read(drawData->DisplayPos.y, buf, offset);
-        read(drawData->DisplaySize.x, buf, offset);
-        read(drawData->DisplaySize.y, buf, offset);
-        read(drawData->FramebufferScale.x, buf, offset);
-        read(drawData->FramebufferScale.y, buf, offset);
+        unserialize(drawData->Valid, buf, offset);
+        unserialize(drawData->CmdListsCount, buf, offset);
+        unserialize(drawData->TotalIdxCount, buf, offset);
+        unserialize(drawData->TotalVtxCount, buf, offset);
+        unserialize(drawData->DisplayPos.x, buf, offset);
+        unserialize(drawData->DisplayPos.y, buf, offset);
+        unserialize(drawData->DisplaySize.x, buf, offset);
+        unserialize(drawData->DisplaySize.y, buf, offset);
+        unserialize(drawData->FramebufferScale.x, buf, offset);
+        unserialize(drawData->FramebufferScale.y, buf, offset);
 
         if ((int) drawLists.size() < drawData->CmdListsCount) {
             drawLists.resize(drawData->CmdListsCount, ImDrawList(drawListSharedData));
         }
-
 
         if (drawData->CmdLists) {
             delete [] drawData->CmdLists;
@@ -190,10 +195,10 @@ struct Session {
 
             auto & cmdList = drawData->CmdLists[iList];
 
-            read(cmdList->CmdBuffer, buf, offset);
-            read(cmdList->VtxBuffer, buf, offset);
-            read(cmdList->IdxBuffer, buf, offset);
-            read(cmdList->Flags, buf, offset);
+            unserialize(cmdList->CmdBuffer, buf, offset);
+            unserialize(cmdList->VtxBuffer, buf, offset);
+            unserialize(cmdList->IdxBuffer, buf, offset);
+            unserialize(cmdList->Flags, buf, offset);
         }
 
         return true;

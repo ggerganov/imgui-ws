@@ -6,6 +6,8 @@
 
 #include "imgui/imgui.h"
 
+#include <cstring>
+
 namespace {
 
 void writeCmdListToBuffer(const ImDrawList * cmdList, std::vector<char> & buf) {
