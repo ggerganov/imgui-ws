@@ -1,8 +1,8 @@
-if (IMGUI_WS_BUILD_HEADLESS_EXAMPLES)
-    add_subdirectory(headless)
-    add_subdirectory(headless-with-input)
+if (IMGUI_WS_BUILD_EXAMPLES_NULL)
+    add_subdirectory(basic-null)
+    add_subdirectory(demo-null)
 endif()
 
-if (IMGUI_WS_BUILD_SDL2_EXAMPLES)
-    add_subdirectory(sdl2-basic)
+if (IMGUI_WS_SUPPORT_SDL2 AND IMGUI_WS_BUILD_EXAMPLES_SDL2)
+    add_subdirectory(basic-sdl2)
 endif()

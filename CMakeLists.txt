@@ -10,14 +10,23 @@ else()
     set(IMGUI_WS_STANDALONE OFF)
 endif()
 
-option(IMGUI_WS_ALL_WARNINGS            "imgui-ws: enable all compiler warnings" ON)
+# options
+
+option(IMGUI_WS_ALL_WARNINGS            "imgui-ws: enable all compiler warnings" ${IMGUI_WS_STANDALONE})
 option(IMGUI_WS_ALL_WARNINGS_3RD_PARTY  "imgui-ws: enable all compiler warnings in 3rd party libs" OFF)
+
 option(IMGUI_WS_SANITIZE_THREAD         "imgui-ws: enable thread sanitizer" OFF)
 option(IMGUI_WS_SANITIZE_ADDRESS        "imgui-ws: enable address sanitizer" OFF)
 option(IMGUI_WS_SANITIZE_UNDEFINED      "imgui-ws: enable undefined sanitizer" OFF)
-option(IMGUI_WS_BUILD_HEADLESS_EXAMPLES "imgui-ws: build headless examples" ${IMGUI_WS_STANDALONE})
+
 option(IMGUI_WS_SUPPORT_SDL2            "imgui-ws: imgui with sdl2" OFF)
-option(IMGUI_WS_BUILD_SDL2_EXAMPLES     "imgui-ws: build sdl2 examples" OFF)
+
+option(IMGUI_WS_BUILD_EXAMPLES_NULL     "imgui-ws: build headless examples" ${IMGUI_WS_STANDALONE})
+option(IMGUI_WS_BUILD_EXAMPLES_SDL2     "imgui-ws: build sdl2 examples" ${IMGUI_WS_STANDALONE})
+
+option(IMGUI_WS_BUILD_TOOLS             "imgui-ws: build tools" ${IMGUI_WS_STANDALONE})
+
+# sanitizers
 
 if (IMGUI_WS_SANITIZE_THREAD)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=thread")
@@ -34,6 +43,8 @@ if (IMGUI_WS_SANITIZE_UNDEFINED)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
 endif()
 
+# main
+
 find_package(Threads REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -49,4 +60,5 @@ add_subdirectory(src)
 
 if (IMGUI_WS_STANDALONE)
     add_subdirectory(examples)
+    add_subdirectory(tools)
 endif()

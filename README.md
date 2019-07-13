@@ -12,12 +12,12 @@ These are sample applications using **imgui-ws**, running on a [Linode 2GB](http
 
 | Example | URL | Description |
 | ------- | --- | ----------- |
-| [headless-with-input](https://github.com/ggerganov/imgui-ws/tree/master/examples/headless-with-input) | http://85.90.246.132:5001/ | Dear ImGui's demo app |
-| [headless](https://github.com/ggerganov/imgui-ws/tree/master/examples/headless) | http://85.90.246.132:5002/ | Basic read-only data visualization |
+| [demo-null](https://github.com/ggerganov/imgui-ws/tree/master/examples/demo-null) | http://85.90.246.132:5001/ | Dear ImGui's demo app |
+| [basic-null](https://github.com/ggerganov/imgui-ws/tree/master/examples/basic-null) | http://85.90.246.132:5002/ | Basic read-only data visualization |
 
 ## Usage
 
-The [most basic usage](https://github.com/ggerganov/imgui-ws/tree/master/examples/headless) is similar to the following:
+The [most basic usage](https://github.com/ggerganov/imgui-ws/tree/master/examples/basic-null) is similar to the following:
 
 ```cpp
 #include "imgui-ws/imgui-ws.h"
@@ -48,7 +48,7 @@ cmake ..
 make
 
 # running
-./bin/headless-with-input 5000
+./bin/demo-null 5000
 ```
 
 Open some browsers and point them to http://localhost:5000/
