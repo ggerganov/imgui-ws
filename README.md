@@ -25,23 +25,17 @@ There are a few tools that help with the development and the optimization of the
 
       ./bin/record-sdl2 session.imdd
 
-  ---
-
 - [replay-sdl2](https://github.com/ggerganov/imgui-ws/tree/master/tools/replay-sdl2)
 
   Replay a session recorded with the **record-sdl2** tool
 
       ./bin/replay-sdl2 session.imdd
 
-  ---
-
 - [compressor-benchmark](https://github.com/ggerganov/imgui-ws/tree/master/tools/compressor-benchmark)
 
   Run the available ImDrawData compression algorithms on various pre-recorded Dear ImGui sessions. Reports compression ratio, average required bandwidth and cpu utilization:
 
       ./bin/compressor-benchmark session0.imdd [session1.imdd] [session2.imdd] [...]
-
-  ---
 
 ## Building & running
 
@@ -61,6 +55,7 @@ Open some browsers and point them to http://localhost:5000/
 ## Dependencies
 
  - [uWebSockets](https://github.com/uNetworking/uWebSockets)
+ - [SDL2](https://www.libsdl.org) - *optional, used by some of the examples and tools*
 
 ## Screenshot 
 
