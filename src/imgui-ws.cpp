@@ -61,7 +61,7 @@ ImGuiWS::~ImGuiWS() {
     }
 }
 
-bool ImGuiWS::init(int port, const char * pathHttp) {
+bool ImGuiWS::init(int32_t port, const char * pathHttp) {
     m_impl->incppect.var("my_id[%d]", [](const auto & idxs) {
         static int32_t id;
         id = idxs[0];

@@ -54,10 +54,21 @@ class ImGuiWS {
             std::string ip;
         };
 
+        enum ImDrawDataType : int32_t {
+            Default,
+            DefaultWith32BitIndices,
+        };
+
+        enum DiffApproach : int32_t {
+            XorRle,
+            XorRlePerCmdList,
+            XorRlePerCmdListWithVtxPosOffset,
+        };
+
         ImGuiWS();
         ~ImGuiWS();
 
-        bool init(int port, const char * pathHttp);
+        bool init(int32_t port, const char * pathHttp);
         bool setTexture(TextureId textureId, int32_t width, int32_t height, const char * data);
         bool setDrawData(const struct ImDrawData * drawData);
 
