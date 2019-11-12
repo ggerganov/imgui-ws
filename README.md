@@ -12,8 +12,8 @@ These are sample applications using **imgui-ws**, running on a [Linode 2GB](http
 
 | Example | URL | Description |
 | ------- | --- | ----------- |
-| [demo-null](https://github.com/ggerganov/imgui-ws/tree/master/examples/demo-null) | http://85.90.246.132:5001/ | Dear ImGui's demo app |
-| [basic-null](https://github.com/ggerganov/imgui-ws/tree/master/examples/basic-null) | http://85.90.246.132:5002/ | Basic read-only data visualization |
+| [demo-null](https://github.com/ggerganov/imgui-ws/tree/master/examples/demo-null) | http://imgui-ws.ggerganov.com:5001/ | Dear ImGui's demo app |
+| [basic-null](https://github.com/ggerganov/imgui-ws/tree/master/examples/basic-null) | http://imgui-ws.ggerganov.com:5002/ | Basic read-only data visualization |
 
 ## Tools
 
