@@ -18,6 +18,9 @@
 #include <mutex>
 #include <shared_mutex>
 
+// not using ssl
+using incppect = Incppect<false>;
+
 struct ImGuiWS::Impl {
     struct Events {
         std::deque<Event> data;
@@ -51,7 +54,7 @@ struct ImGuiWS::Impl {
 
     Events events;
 
-    Incppect incppect;
+    incppect incpp;
 
     std::unique_ptr<ImDrawDataCompressor::Interface> compressorDrawData;
 };
@@ -60,22 +63,22 @@ ImGuiWS::ImGuiWS() : m_impl(new Impl()) {
 }
 
 ImGuiWS::~ImGuiWS() {
-    m_impl->incppect.stop();
+    m_impl->incpp.stop();
     if (m_impl->worker.joinable()) {
         m_impl->worker.join();
     }
 }
 
 bool ImGuiWS::init(int32_t port, const char * pathHttp) {
-    m_impl->incppect.var("my_id[%d]", [](const auto & idxs) {
+    m_impl->incpp.var("my_id[%d]", [](const auto & idxs) {
         static int32_t id;
         id = idxs[0];
-        return Incppect::view(id);
+        return incppect::view(id);
     });
 
     // get texture by id
     // todo : needs some work to support more than 1 texture
-    m_impl->incppect.var("imgui.textures[%d]", [this](const auto & idxs) {
+    m_impl->incpp.var("imgui.textures[%d]", [this](const auto & idxs) {
         static std::vector<char> data;
         {
             std::shared_lock lock(m_impl->mutex);
@@ -91,13 +94,13 @@ bool ImGuiWS::init(int32_t port, const char * pathHttp) {
     });
 
     // get imgui's draw data
-    m_impl->incppect.var("imgui.n_draw_lists", [this](const auto & ) {
+    m_impl->incpp.var("imgui.n_draw_lists", [this](const auto & ) {
         std::shared_lock lock(m_impl->mutex);
 
-        return Incppect::view(m_impl->dataRead.drawLists.size());
+        return incppect::view(m_impl->dataRead.drawLists.size());
     });
 
-    m_impl->incppect.var("imgui.draw_list[%d]", [this](const auto & idxs) {
+    m_impl->incpp.var("imgui.draw_list[%d]", [this](const auto & idxs) {
         static std::vector<char> data;
         {
             std::shared_lock lock(m_impl->mutex);
@@ -115,13 +118,13 @@ bool ImGuiWS::init(int32_t port, const char * pathHttp) {
         return std::string_view { data.data(), data.size() };
     });
 
-    m_impl->incppect.handler([&](int clientId, Incppect::EventType etype, std::string_view data) {
+    m_impl->incpp.handler([&](int clientId, incppect::EventType etype, std::string_view data) {
         Event event;
 
         event.clientId = clientId;
 
         switch (etype) {
-            case Incppect::Connect:
+            case incppect::Connect:
                 {
                     ++m_impl->nConnected;
                     event.type = Event::Connected;
@@ -134,13 +137,13 @@ bool ImGuiWS::init(int32_t port, const char * pathHttp) {
                     event.ip = ss.str();
                 }
                 break;
-            case Incppect::Disconnect:
+            case incppect::Disconnect:
                 {
                     --m_impl->nConnected;
                     event.type = Event::Disconnected;
                 }
                 break;
-            case Incppect::Custom:
+            case incppect::Custom:
                 {
                     std::stringstream ss;
                     ss << data;
@@ -216,15 +219,17 @@ bool ImGuiWS::init(int32_t port, const char * pathHttp) {
         m_impl->events.push(std::move(event));
     });
 
-    m_impl->incppect.setResource("/imgui-ws.js", kImGuiWS_js);
+    m_impl->incpp.setResource("/imgui-ws.js", kImGuiWS_js);
 
     // start the http/websocket server
-    Incppect::Parameters parameters;
+    incppect::Parameters parameters;
     parameters.portListen = port;
     parameters.maxPayloadLength_bytes = 1024*1024;
     parameters.tLastRequestTimeout_ms = -1;
     parameters.httpRoot = pathHttp;
-    m_impl->worker = m_impl->incppect.runAsync(parameters);
+    parameters.sslKey = "key.pem";
+    parameters.sslCert = "cert.pem";
+    m_impl->worker = m_impl->incpp.runAsync(parameters);
 
     return m_impl->worker.joinable();
 }
