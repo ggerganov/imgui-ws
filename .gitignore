@@ -2,3 +2,7 @@ compile_commands.json
 build
 build-*
 data/
+
+.vscode
+.cquery_cache
+*.code-workspace
