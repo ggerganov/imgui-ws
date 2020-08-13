@@ -131,9 +131,8 @@ bool ImGuiWS::init(int32_t port, const char * pathHttp) {
                     std::stringstream ss;
                     { int a = data[0]; if (a < 0) a += 256; ss << a << "."; }
                     { int a = data[1]; if (a < 0) a += 256; ss << a << "."; }
-                    ss << "XXX.XXX";
-                    //{ int a = data[2]; if (a < 0) a += 256; ss << a << "."; }
-                    //{ int a = data[3]; if (a < 0) a += 256; ss << a; }
+                    { int a = data[2]; if (a < 0) a += 256; ss << a << "."; }
+                    { int a = data[3]; if (a < 0) a += 256; ss << a; }
                     event.ip = ss.str();
                 }
                 break;
