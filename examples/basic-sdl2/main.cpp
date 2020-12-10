@@ -95,7 +95,7 @@ int main(int argc , char ** argv) {
         unsigned char * pixels;
         int width, height;
         ImGui::GetIO().Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
-        imguiWS.setTexture(1, width, height, (const char *) pixels);
+        imguiWS.setTexture(0, ImGuiWS::Texture::Type::Alpha8, width, height, (const char *) pixels);
     }
 
     // Main loop

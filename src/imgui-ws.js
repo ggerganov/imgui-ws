@@ -14,8 +14,9 @@ var imgui_ws = {
 
     device_pixel_ratio: window.device_pixel_ratio || 1,
 
-    tex_font_id: null,
-    tex_font_abuf: null,
+    tex_map_id: {},
+    tex_map_rev: {},
+    tex_map_abuf: {},
 
     n_draw_lists: null,
     draw_lists_abuf: {},
@@ -149,35 +150,80 @@ var imgui_ws = {
         this.gl.vertexAttribPointer(this.attribute_location_color,    4, this.gl.UNSIGNED_BYTE, true,  5*4, 4*4);
     },
 
-    incppect_tex_font: function(incppect) {
-        if (this.tex_font_abuf === null || this.tex_font_abuf.byteLength < 1) {
-            this.tex_font_abuf = incppect.get_abuf('imgui.textures[%d]', 1);
-        } else if (this.tex_font_id === null) {
-            imgui_ws.init_font(this.tex_font_abuf);
+    incppect_textures: function(incppect) {
+        var n_textures = incppect.get_int32('imgui.n_textures');
+
+        for (var i = 0; i < n_textures; ++i) {
+            var tex_id = incppect.get_int32('imgui.texture_id[%d]', i);
+            var tex_rev = incppect.get_int32('imgui.texture_revision[%d]', tex_id);
+
+            if (this.tex_map_abuf[tex_id] == null || this.tex_map_abuf[tex_id].byteLength < 1) {
+                this.tex_map_abuf[tex_id] = incppect.get_abuf('imgui.texture_data[%d]', tex_id);
+            } else if (this.tex_map_abuf[tex_id] && (this.tex_map_id[tex_id] == null || this.tex_map_rev[tex_id] != tex_rev)) {
+                this.tex_map_abuf[tex_id] = incppect.get_abuf('imgui.texture_data[%d]', tex_id);
+                imgui_ws.init_tex(tex_id, tex_rev, this.tex_map_abuf[tex_id]);
+            }
         }
     },
 
-    init_font: function(tex_font_abuf) {
-        var tex_font_uint8 = new Uint8Array(tex_font_abuf);
-        var tex_font_int32 = new Int32Array(tex_font_abuf);
+    init_tex: function(tex_id, tex_rev, tex_abuf) {
+        var tex_abuf_uint8 = new Uint8Array(tex_abuf);
+        var tex_abuf_int32 = new Int32Array(tex_abuf);
 
-        const width = tex_font_int32[2];
-        const height = tex_font_int32[3];
+        const type = tex_abuf_int32[1];
+        const width = tex_abuf_int32[2];
+        const height = tex_abuf_int32[3];
+        const revision = tex_abuf_int32[4];
 
-        var pixels = new Uint8Array(4*width*height);
-        for (var i = 0; i < width*height; ++i) {
-            pixels[4*i + 3] = tex_font_uint8[16 + i];
-            pixels[4*i + 2] = 0xFF;
-            pixels[4*i + 1] = 0xFF;
-            pixels[4*i + 0] = 0xFF;
+        if (this.tex_map_rev[tex_id] && revision == this.tex_map_rev[tex_id]) {
+            return;
         }
 
-        this.tex_font_id = this.gl.createTexture();
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.tex_font_id);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-        //this.gl.pixelStorei(gl.UNPACK_ROW_LENGTH); // WebGL2
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, width, height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, pixels);
+        var pixels = new Uint8Array(4*width*height);
+
+        if (type == 0) { // Alpha8
+            for (var i = 0; i < width*height; ++i) {
+                pixels[4*i + 0] = 0xFF;
+                pixels[4*i + 1] = 0xFF;
+                pixels[4*i + 2] = 0xFF;
+                pixels[4*i + 3] = tex_abuf_uint8[20 + i];
+            }
+        } else if (type == 1) { // Gray8
+            for (var i = 0; i < width*height; ++i) {
+                pixels[4*i + 0] = tex_abuf_uint8[20 + i];
+                pixels[4*i + 1] = tex_abuf_uint8[20 + i];
+                pixels[4*i + 2] = tex_abuf_uint8[20 + i];
+                pixels[4*i + 3] = 0xFF;
+            }
+        } else if (type == 2) { // RGB24
+            for (var i = 0; i < width*height; ++i) {
+                pixels[4*i + 0] = tex_abuf_uint8[20 + 3*i + 0];
+                pixels[4*i + 1] = tex_abuf_uint8[20 + 3*i + 1];
+                pixels[4*i + 2] = tex_abuf_uint8[20 + 3*i + 2];
+                pixels[4*i + 3] = 0xFF;
+            }
+        } else if (type == 3) { // RGBA32
+            for (var i = 0; i < width*height; ++i) {
+                pixels[4*i + 0] = tex_abuf_uint8[20 + 4*i + 0];
+                pixels[4*i + 1] = tex_abuf_uint8[20 + 4*i + 1];
+                pixels[4*i + 2] = tex_abuf_uint8[20 + 4*i + 2];
+                pixels[4*i + 3] = tex_abuf_uint8[20 + 4*i + 3];
+            }
+        }
+
+        this.tex_map_rev[tex_id] = tex_rev;
+
+        if (this.tex_map_id[tex_id]) {
+            this.gl.bindTexture(this.gl.TEXTURE_2D, this.tex_map_id[tex_id]);
+            this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, width, height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, pixels);
+        } else {
+            this.tex_map_id[tex_id] = this.gl.createTexture();
+            this.gl.bindTexture(this.gl.TEXTURE_2D, this.tex_map_id[tex_id]);
+            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+            //this.gl.pixelStorei(gl.UNPACK_ROW_LENGTH); // WebGL2
+            this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, width, height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, pixels);
+        }
     },
 
     incppect_draw_lists: function(incppect) {
@@ -259,10 +305,9 @@ var imgui_ws = {
 
                 if (clip_x < this.canvas.width && clip_y < this.canvas.height && clip_z >= 0.0 && clip_w >= 0.0) {
                     this.gl.scissor(clip_x, this.canvas.height - clip_w, clip_z - clip_x, clip_w - clip_y);
-                    // todo : temp hack
-                    if (texture_id == 1) {
+                    if (texture_id in this.tex_map_id) {
                         this.gl.activeTexture(this.gl.TEXTURE0);
-                        this.gl.bindTexture(this.gl.TEXTURE_2D, this.tex_font_id);
+                        this.gl.bindTexture(this.gl.TEXTURE_2D, this.tex_map_id[texture_id]);
                     }
                     this.gl.drawElements(this.gl.TRIANGLES, n_elements, this.gl.UNSIGNED_SHORT, 2*offset_idx);
                 }

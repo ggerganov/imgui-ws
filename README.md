@@ -14,6 +14,7 @@ These are sample applications using **imgui-ws**, running on a [Linode 2GB](http
 | ------- | --- | ----------- |
 | [demo-null](https://github.com/ggerganov/imgui-ws/tree/master/examples/demo-null) | http://imgui-ws.ggerganov.com:5001/ | Dear ImGui's demo app |
 | [basic-null](https://github.com/ggerganov/imgui-ws/tree/master/examples/basic-null) | http://imgui-ws.ggerganov.com:5002/ | Basic read-only data visualization |
+| [textures-null](https://github.com/ggerganov/imgui-ws/tree/master/examples/textures-null) | http://imgui-ws.ggerganov.com:5003/ | Textures example |
 
 ## Tools
 

@@ -15,11 +15,14 @@ class ImGuiWS {
         using TextureId = uint32_t;
 
         struct Texture {
-            enum Type : int32_t {
+            enum class Type : int32_t {
                 Alpha8 = 0,
-                RGBA32,
+                Gray8  = 1,
+                RGB24  = 2,
+                RGBA32 = 3,
             };
 
+            int revision = 0;
             std::vector<char> data;
         };
 
@@ -58,7 +61,7 @@ class ImGuiWS {
         ~ImGuiWS();
 
         bool init(int32_t port, const char * pathHttp);
-        bool setTexture(TextureId textureId, int32_t width, int32_t height, const char * data);
+        bool setTexture(TextureId textureId, Texture::Type textureType, int32_t width, int32_t height, const char * data);
         bool setDrawData(const struct ImDrawData * drawData);
 
         int32_t nConnected() const;
