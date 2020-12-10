@@ -3,6 +3,7 @@ build
 build-*
 data/
 
+.clangd
 .vscode
 .cquery_cache
 *.code-workspace
