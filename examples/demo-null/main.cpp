@@ -55,27 +55,27 @@ int main(int argc, char ** argv) {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
 
-    io.KeyMap[ImGuiKey_Tab]         = 43;
-    io.KeyMap[ImGuiKey_LeftArrow]   = 80;
-    io.KeyMap[ImGuiKey_RightArrow]  = 79;
-    io.KeyMap[ImGuiKey_UpArrow]     = 82;
-    io.KeyMap[ImGuiKey_DownArrow]   = 81;
-    io.KeyMap[ImGuiKey_PageUp]      = 75;
-    io.KeyMap[ImGuiKey_PageDown]    = 78;
-    io.KeyMap[ImGuiKey_Home]        = 74;
-    io.KeyMap[ImGuiKey_End]         = 77;
-    io.KeyMap[ImGuiKey_Insert]      = 73;
-    io.KeyMap[ImGuiKey_Delete]      = 76;
+    io.KeyMap[ImGuiKey_Tab]         = 9;
+    io.KeyMap[ImGuiKey_LeftArrow]   = 37;
+    io.KeyMap[ImGuiKey_RightArrow]  = 39;
+    io.KeyMap[ImGuiKey_UpArrow]     = 38;
+    io.KeyMap[ImGuiKey_DownArrow]   = 40;
+    io.KeyMap[ImGuiKey_PageUp]      = 33;
+    io.KeyMap[ImGuiKey_PageDown]    = 34;
+    io.KeyMap[ImGuiKey_Home]        = 36;
+    io.KeyMap[ImGuiKey_End]         = 35;
+    io.KeyMap[ImGuiKey_Insert]      = 45;
+    io.KeyMap[ImGuiKey_Delete]      = 46;
     io.KeyMap[ImGuiKey_Backspace]   = 8;
     io.KeyMap[ImGuiKey_Space]       = 32;
     io.KeyMap[ImGuiKey_Enter]       = 13;
     io.KeyMap[ImGuiKey_Escape]      = 27;
-    io.KeyMap[ImGuiKey_A]           = 97;
-    io.KeyMap[ImGuiKey_C]           = 99;
-    io.KeyMap[ImGuiKey_V]           = 118;
-    io.KeyMap[ImGuiKey_X]           = 120;
-    io.KeyMap[ImGuiKey_Y]           = 121;
-    io.KeyMap[ImGuiKey_Z]           = 122;
+    io.KeyMap[ImGuiKey_A]           = 65;
+    io.KeyMap[ImGuiKey_C]           = 67;
+    io.KeyMap[ImGuiKey_V]           = 86;
+    io.KeyMap[ImGuiKey_X]           = 88;
+    io.KeyMap[ImGuiKey_Y]           = 89;
+    io.KeyMap[ImGuiKey_Z]           = 90;
 
     io.MouseDrawCursor = true;
 
