@@ -338,7 +338,7 @@ var imgui_ws = {
         this.canvas_on_keypress = function(event) {
             incppect.send('4 ' + event.keyCode);
 
-            if (this.io.want_capture_mouse) {
+            if (this.io.want_capture_keyboard) {
                 event.preventDefault();
             }
         };
@@ -349,7 +349,7 @@ var imgui_ws = {
 
             incppect.send('0 ' + this.io.mouse_x + ' ' + this.io.mouse_y);
 
-            if (this.io.want_capture_keyboard) {
+            if (this.io.want_capture_mouse) {
                 event.preventDefault();
             }
         };
