@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <functional>
 #include <vector>
 #include <queue>
 #include <string>
@@ -13,6 +14,10 @@
 class ImGuiWS {
     public:
         using TextureId = uint32_t;
+
+        using TPath = std::string;
+        using TIdxs = std::vector<int>;
+        using TGetter = std::function<std::string_view(const TIdxs & idxs)>;
 
         struct Texture {
             enum Type : int32_t {
@@ -60,6 +65,7 @@ class ImGuiWS {
         bool init(int32_t port, const char * pathHttp);
         bool setTexture(TextureId textureId, int32_t width, int32_t height, const char * data);
         bool setDrawData(const struct ImDrawData * drawData);
+        bool addVar(const TPath & path, TGetter && getter);
 
         int32_t nConnected() const;
 
