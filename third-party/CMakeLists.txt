@@ -17,6 +17,7 @@ add_library(imgui SHARED
     imgui/imgui/imgui_draw.cpp
     imgui/imgui/imgui_demo.cpp
     imgui/imgui/imgui_widgets.cpp
+    imgui/imgui/imgui_tables.cpp
     )
 
 target_include_directories(imgui INTERFACE
