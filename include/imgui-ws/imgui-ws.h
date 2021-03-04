@@ -60,6 +60,7 @@ class ImGuiWS {
         bool init(int32_t port, const char * pathHttp);
         bool setTexture(TextureId textureId, int32_t width, int32_t height, const char * data);
         bool setDrawData(const struct ImDrawData * drawData);
+        void stop();
 
         int32_t nConnected() const;
 
