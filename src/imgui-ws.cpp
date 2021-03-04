@@ -70,6 +70,10 @@ ImGuiWS::~ImGuiWS() {
     }
 }
 
+bool ImGuiWS::addVar(const TPath & path, TGetter && getter) {
+    return m_impl->incpp.var(path, std::move(getter));
+}
+
 bool ImGuiWS::init(int32_t port, const char * pathHttp) {
     m_impl->incpp.var("my_id[%d]", [](const auto & idxs) {
         static int32_t id;
