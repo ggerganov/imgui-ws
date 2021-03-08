@@ -1,4 +1,4 @@
- [![Build Status](https://travis-ci.org/ggerganov/imgui-ws.svg?branch=master)](https://travis-ci.org/ggerganov/imgui-ws?branch=master)
+ [![Actions Status](https://github.com/ggerganov/imgui-ws/workflows/CI/badge.svg)](https://github.com/ggerganov/imgui-ws/actions)
 
 # imgui-ws
 
