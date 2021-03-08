@@ -43,6 +43,7 @@ class ImGuiWS {
                 KeyPress,
                 KeyDown,
                 KeyUp,
+                Resize,
             };
 
             Type type = Unknown;
@@ -58,6 +59,9 @@ class ImGuiWS {
             int32_t mouse_but = 0;
 
             int32_t key = 0;
+
+            int32_t client_width = 1920;
+            int32_t client_height = 1080;
 
             std::string ip;
         };
