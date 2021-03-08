@@ -1,0 +1,82 @@
+name: CI
+on: [push]
+
+jobs:
+    ubuntu-18_04-gcc:
+        runs-on: ubuntu-18.04
+
+        strategy:
+            matrix:
+                build: [Debug, Release]
+
+        steps:
+            - name: Clone
+              uses: actions/checkout@v1
+              with:
+                  submodules: recursive
+
+            - name: Dependencies
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install build-essential
+                  sudo apt-get install cmake;
+                  sudo apt-get install libssl-dev;
+
+            - name: Configure
+              run: cmake . -DCMAKE_BUILD_TYPE=${{ matrix.build }}
+
+            - name: Build
+              run: |
+                make
+
+    ubuntu-18_04-clang:
+        runs-on: ubuntu-18.04
+
+        strategy:
+            matrix:
+                build: [Release]
+
+        steps:
+            - name: Clone
+              uses: actions/checkout@v1
+              with:
+                  submodules: recursive
+
+            - name: Dependencies
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install build-essential
+                  sudo apt-get install cmake;
+                  sudo apt-get install libssl-dev;
+
+            - name: Configure
+              run: cmake . -DCMAKE_BUILD_TYPE=${{ matrix.build }} -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang
+
+            - name: Build
+              run: |
+                make
+
+    macOS-10_14-clang:
+        runs-on: macOS-10.14
+
+        strategy:
+            matrix:
+                build: [Release]
+
+        steps:
+            - name: Clone
+              uses: actions/checkout@v1
+              with:
+                  submodules: recursive
+
+            - name: Dependencies
+              run: |
+                  brew update
+                  brew install libuv openssl
+
+            - name: Configure
+              run: cmake . -DCMAKE_BUILD_TYPE=${{ matrix.build }} -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DOPENSSL_SSL_LIBRARY=/usr/local/opt/openssl@1.1/lib/libssl.dylib -DOPENSSL_CRYPTO_LIBRARY=/usr/local/opt/openssl@1.1/lib/libcrypto.dylib
+
+            - name: Build
+              run: |
+                make
