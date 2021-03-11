@@ -167,12 +167,18 @@ bool ImGuiWS::init(int32_t port, const char * pathHttp) {
                     { int a = data[2]; if (a < 0) a += 256; ss << a << "."; }
                     { int a = data[3]; if (a < 0) a += 256; ss << a; }
                     event.ip = ss.str();
+                    if (connect_handler) {
+                        connect_handler();
+                    }
                 }
                 break;
             case incppect::Disconnect:
                 {
                     --m_impl->nConnected;
                     event.type = Event::Disconnected;
+                    if (disconnect_handler) {
+                        disconnect_handler();
+                    }
                 }
                 break;
             case incppect::Custom:
@@ -315,6 +321,12 @@ bool ImGuiWS::setTexture(TextureId textureId, Texture::Type textureType, int32_t
     return true;
 }
 
+bool ImGuiWS::init(int32_t port, const char * pathHttp, const THandler & connect_handler, const THandler & disconnect_handler) {
+    registerHandlerConnect(connect_handler);
+    registerHandlerDisconnect(disconnect_handler);
+    return init(port, pathHttp);
+}
+
 bool ImGuiWS::setDrawData(const ImDrawData * drawData) {
     bool result = true;
 
@@ -342,4 +354,12 @@ std::deque<ImGuiWS::Event> ImGuiWS::takeEvents() {
     std::lock_guard<std::mutex> lock(m_impl->events.mutex);
     auto res = std::move(m_impl->events.data);
     return res;
+}
+
+void ImGuiWS::registerHandlerConnect(const THandler & handler) {
+    connect_handler = std::move(handler);
+}
+
+void ImGuiWS::registerHandlerDisconnect(const THandler & handler) {
+    disconnect_handler = std::move(handler);
 }
