@@ -15,6 +15,7 @@ class ImGuiWS {
     public:
         using TextureId = uint32_t;
 
+        using THandler = std::function<void()>;
         using TPath = std::string;
         using TIdxs = std::vector<int>;
         using TGetter = std::function<std::string_view(const TIdxs & idxs)>;
@@ -70,9 +71,11 @@ class ImGuiWS {
         ~ImGuiWS();
 
         bool init(int32_t port, const char * pathHttp);
+        bool init(int32_t port, const char * pathHttp, const THandler & connect_handler, const THandler & disconnect_handler);
         bool setTexture(TextureId textureId, Texture::Type textureType, int32_t width, int32_t height, const char * data);
         bool setDrawData(const struct ImDrawData * drawData);
         bool addVar(const TPath & path, TGetter && getter);
+
 
         int32_t nConnected() const;
 
@@ -81,4 +84,8 @@ class ImGuiWS {
     private:
         struct Impl;
         std::unique_ptr<Impl> m_impl;
+        THandler connect_handler = nullptr;
+        THandler disconnect_handler = nullptr;
+        void registerHandlerConnect(const THandler & handler);
+        void registerHandlerDisconnect(const THandler & handler);
 };
