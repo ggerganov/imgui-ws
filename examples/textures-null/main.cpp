@@ -83,7 +83,7 @@ int main(int argc, char ** argv) {
         // regenerate random textures every ~5 seconds
         {
             static int counter = 0;
-            if (++counter % (3*60) == 0) {
+            if (++counter % (5*60) == 0) {
                 regenerate(imguiWS, counter);
             }
         }
