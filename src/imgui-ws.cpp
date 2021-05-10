@@ -96,7 +96,7 @@ bool ImGuiWS::init(int32_t port, const char * pathHttp) {
         std::shared_lock lock(m_impl->mutex);
 
         if (m_impl->dataRead.textureIdMap.find(idxs[0]) == m_impl->dataRead.textureIdMap.end()) {
-            return std::string_view { 0 };
+            return std::string_view { };
         }
 
         return incppect::view(m_impl->dataRead.textureIdMap[idxs[0]]);
@@ -107,7 +107,7 @@ bool ImGuiWS::init(int32_t port, const char * pathHttp) {
         std::shared_lock lock(m_impl->mutex);
 
         if (m_impl->dataRead.textures.find(idxs[0]) == m_impl->dataRead.textures.end()) {
-            return std::string_view { 0 };
+            return std::string_view { };
         }
 
         return incppect::view(m_impl->dataRead.textures[idxs[0]].revision);
