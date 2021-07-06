@@ -17,6 +17,7 @@
 #include <cstring>
 #include <mutex>
 #include <shared_mutex>
+#include <condition_variable>
 
 // not using ssl
 using incppect = Incppect<false>;
