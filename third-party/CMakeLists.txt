@@ -22,6 +22,7 @@ add_library(imgui SHARED
 
 target_include_directories(imgui INTERFACE
     imgui
+    imgui/imgui
     )
 
 target_include_directories(imgui PRIVATE
@@ -39,8 +40,8 @@ if (IMGUI_WS_SUPPORT_SDL2)
 
     add_library(imgui-sdl2 SHARED
         imgui/imgui/examples/libs/gl3w/GL/gl3w.c
-        imgui/imgui/examples/imgui_impl_sdl.cpp
-        imgui/imgui/examples/imgui_impl_opengl3.cpp
+        imgui/imgui/backends/imgui_impl_sdl.cpp
+        imgui/imgui/backends/imgui_impl_opengl3.cpp
         )
 
     target_include_directories(imgui-sdl2 PUBLIC
