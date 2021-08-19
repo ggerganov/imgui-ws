@@ -21,9 +21,10 @@ jobs:
                   sudo apt-get install build-essential
                   sudo apt-get install cmake;
                   sudo apt-get install libssl-dev;
+                  sudo apt-get install libsdl2-dev;
 
             - name: Configure
-              run: cmake . -DCMAKE_BUILD_TYPE=${{ matrix.build }}
+              run: cmake . -DCMAKE_BUILD_TYPE=${{ matrix.build }} -DIMGUI_WS_SUPPORT_SDL2=ON
 
             - name: Build
               run: |
@@ -48,9 +49,10 @@ jobs:
                   sudo apt-get install build-essential
                   sudo apt-get install cmake;
                   sudo apt-get install libssl-dev;
+                  sudo apt-get install libsdl2-dev;
 
             - name: Configure
-              run: cmake . -DCMAKE_BUILD_TYPE=${{ matrix.build }} -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang
+              run: cmake . -DCMAKE_BUILD_TYPE=${{ matrix.build }} -DIMGUI_WS_SUPPORT_SDL2=ON -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang
 
             - name: Build
               run: |
@@ -72,10 +74,10 @@ jobs:
             - name: Dependencies
               run: |
                   brew update
-                  brew install libuv openssl
+                  brew install libuv openssl sdl2
 
             - name: Configure
-              run: cmake . -DCMAKE_BUILD_TYPE=${{ matrix.build }} -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DOPENSSL_SSL_LIBRARY=/usr/local/opt/openssl@1.1/lib/libssl.dylib -DOPENSSL_CRYPTO_LIBRARY=/usr/local/opt/openssl@1.1/lib/libcrypto.dylib
+              run: cmake . -DCMAKE_BUILD_TYPE=${{ matrix.build }} -DIMGUI_WS_SUPPORT_SDL2=ON -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DOPENSSL_SSL_LIBRARY=/usr/local/opt/openssl@1.1/lib/libssl.dylib -DOPENSSL_CRYPTO_LIBRARY=/usr/local/opt/openssl@1.1/lib/libcrypto.dylib
 
             - name: Build
               run: |
