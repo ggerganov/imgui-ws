@@ -45,6 +45,7 @@ class ImGuiWS {
                 KeyDown,
                 KeyUp,
                 Resize,
+                TakeControl,
             };
 
             Type type = Unknown;

@@ -254,6 +254,12 @@ bool ImGuiWS::init(int32_t port, const char * pathHttp) {
                                 ss >> event.client_width >> event.client_height;
                             }
                             break;
+                        case 8:
+                            {
+                                // take control
+                                event.type = Event::TakeControl;
+                            }
+                            break;
                         default:
                             {
                                 printf("Unknown input received from client: id = %d, type = %d\n", clientId, type);
