@@ -78,7 +78,7 @@ bool ImGuiWS::addVar(const TPath & path, TGetter && getter) {
     return m_impl->incpp.var(path, std::move(getter));
 }
 
-bool ImGuiWS::init(int32_t port, const char * pathHttp) {
+bool ImGuiWS::init(int32_t port, std::string pathHttp, std::vector<std::string> resources) {
     m_impl->incpp.var("my_id[%d]", [](const auto & idxs) {
         static int32_t id;
         id = idxs[0];
@@ -281,7 +281,8 @@ bool ImGuiWS::init(int32_t port, const char * pathHttp) {
     parameters.portListen = port;
     parameters.maxPayloadLength_bytes = 1024*1024;
     parameters.tLastRequestTimeout_ms = -1;
-    parameters.httpRoot = pathHttp;
+    parameters.httpRoot = std::move(pathHttp);
+    parameters.resources = std::move(resources);
     parameters.sslKey = "key.pem";
     parameters.sslCert = "cert.pem";
     m_impl->worker = m_impl->incpp.runAsync(parameters);
@@ -331,11 +332,11 @@ bool ImGuiWS::setTexture(TextureId textureId, Texture::Type textureType, int32_t
     return true;
 }
 
-bool ImGuiWS::init(int32_t port, const char * pathHttp, THandler && handlerConnect, THandler && handlerDisconnect) {
+bool ImGuiWS::init(int32_t port, std::string pathHttp, std::vector<std::string> resources, THandler && handlerConnect, THandler && handlerDisconnect) {
     m_impl->handlerConnect = std::move(handlerConnect);
     m_impl->handlerDisconnect = std::move(handlerDisconnect);
 
-    return init(port, pathHttp);
+    return init(port, std::move(pathHttp), std::move(resources));
 }
 
 bool ImGuiWS::setDrawData(const ImDrawData * drawData) {
@@ -354,7 +355,7 @@ bool ImGuiWS::setDrawData(const ImDrawData * drawData) {
         m_impl->dataRead.drawListsDiff = std::move(drawListsDiff);
     }
 
-    return true;
+    return result;
 }
 
 int32_t ImGuiWS::nConnected() const {

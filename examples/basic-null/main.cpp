@@ -21,7 +21,7 @@ int main(int argc, char ** argv) {
 
     // setup imgui-ws
     ImGuiWS imguiWS;
-    imguiWS.init(port, (httpRoot + "/basic-null").c_str());
+    imguiWS.init(port, httpRoot + "/basic-null", { "", "index.html" });
 
     // prepare font texture
     {
