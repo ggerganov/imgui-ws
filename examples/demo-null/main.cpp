@@ -180,7 +180,14 @@ void State::handle(ImGuiWS::Event && event) {
         case ImGuiWS::Event::MouseDown:
             {
                 if (event.clientId == curIdControl) {
-                    lastMouseDown[event.mouse_but] = true;
+                    // map the JS button code to Dear ImGui's button code
+                    ImGuiMouseButton butImGui = event.mouse_but;
+                    switch (event.mouse_but) {
+                        case 1: butImGui = ImGuiMouseButton_Middle; break;
+                        case 2: butImGui = ImGuiMouseButton_Right; break;
+                    }
+
+                    lastMouseDown[butImGui] = true;
                     lastMousePos.x = event.mouse_x;
                     lastMousePos.y = event.mouse_y;
                 }
@@ -189,7 +196,14 @@ void State::handle(ImGuiWS::Event && event) {
         case ImGuiWS::Event::MouseUp:
             {
                 if (event.clientId == curIdControl) {
-                    lastMouseDown[event.mouse_but] = false;
+                    // map the JS button code to Dear ImGui's button code
+                    ImGuiMouseButton butImGui = event.mouse_but;
+                    switch (event.mouse_but) {
+                        case 1: butImGui = ImGuiMouseButton_Middle; break;
+                        case 2: butImGui = ImGuiMouseButton_Right; break;
+                    }
+
+                    lastMouseDown[butImGui] = false;
                     lastMousePos.x = event.mouse_x;
                     lastMousePos.y = event.mouse_y;
                 }
