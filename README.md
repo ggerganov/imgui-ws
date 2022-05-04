@@ -18,7 +18,8 @@ These are sample applications using **imgui-ws**, running on a [Linode 2GB](http
 
 ## Tools
 
-There are a few tools that help with the development and the optimization of the ImDrawData compression:
+There are a few tools that help with the development and the optimization of the ImDrawData compression.
+To build the SDL-based tools, use `cmake -DIMGUI_WS_SUPPORT_SDL2=ON`.
 
 - [record-sdl2](https://github.com/ggerganov/imgui-ws/tree/master/tools/record-sdl2)
 
