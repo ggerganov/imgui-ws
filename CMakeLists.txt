@@ -43,6 +43,14 @@ if (IMGUI_WS_SANITIZE_UNDEFINED)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
 endif()
 
+# dependencies
+
+if (IMGUI_WS_SUPPORT_SDL2)
+    find_package(OpenGL REQUIRED)
+    find_package(SDL2 REQUIRED)
+    string(STRIP "${SDL2_LIBRARIES}" SDL2_LIBRARIES)
+endif()
+
 # main
 
 find_package(Threads REQUIRED)
