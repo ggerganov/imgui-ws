@@ -16,6 +16,8 @@ These are sample applications using **imgui-ws**, running on a [Linode 2GB](http
 | [basic-null](https://github.com/ggerganov/imgui-ws/tree/master/examples/basic-null) | http://imgui-ws.ggerganov.com:5002/ | Basic read-only data visualization |
 | [textures-null](https://github.com/ggerganov/imgui-ws/tree/master/examples/textures-null) | http://imgui-ws.ggerganov.com:5003/ | Textures example |
 
+Note that these examples are "headless". This means that no graphics backend (like OpenGL, SDL, Vulkan, etc) is needed on the server, because it does not render anything. The application just generates the Dear ImGui draw data and sends it to any connected WebSocket clients where the actual rendering occurs. This has the advantage of being able to run applications with Dear ImGui interface on almost any kind of hardware, even one without a monitor or a graphics card. For example, the applications can run on a [Raspberry Pi](https://www.raspberrypi.org), or on a cloud VM as in the examples above.
+
 ## Tools
 
 There are a few tools that help with the development and the optimization of the ImDrawData compression.
