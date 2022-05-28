@@ -148,6 +148,11 @@ var imgui_ws = {
         this.gl.vertexAttribPointer(this.attribute_location_position, 2, this.gl.FLOAT,         false, 5*4, 0);
         this.gl.vertexAttribPointer(this.attribute_location_uv,       2, this.gl.FLOAT,         false, 5*4, 2*4);
         this.gl.vertexAttribPointer(this.attribute_location_color,    4, this.gl.UNSIGNED_BYTE, true,  5*4, 4*4);
+
+        // enable 32-bit vertex indices
+        if (this.gl.getExtension('OES_element_index_uint') == null) {
+            throw new Error('WebGL: OES_element_index_uint is not supported');
+        }
     },
 
     incppect_textures: function(incppect) {
@@ -282,10 +287,10 @@ var imgui_ws = {
             p = new Uint32Array(draw_lists_abuf[i_list], draw_data_offset, 1);
             var n_indices = p[0]; draw_data_offset += 4;
 
-            var ai = new Uint16Array(draw_lists_abuf[i_list], draw_data_offset, n_indices);
+            var ai = new Uint32Array(draw_lists_abuf[i_list], draw_data_offset, n_indices);
             this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
             this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, ai, this.gl.STREAM_DRAW);
-            draw_data_offset += 2*n_indices;
+            draw_data_offset += 4*n_indices;
 
             p = new Uint32Array(draw_lists_abuf[i_list], draw_data_offset, 1);
             var n_cmd = p[0]; draw_data_offset += 4;
@@ -309,7 +314,7 @@ var imgui_ws = {
                         this.gl.activeTexture(this.gl.TEXTURE0);
                         this.gl.bindTexture(this.gl.TEXTURE_2D, this.tex_map_id[texture_id]);
                     }
-                    this.gl.drawElements(this.gl.TRIANGLES, n_elements, this.gl.UNSIGNED_SHORT, 2*offset_idx);
+                    this.gl.drawElements(this.gl.TRIANGLES, n_elements, this.gl.UNSIGNED_INT, 4*offset_idx);
                 }
             }
         }

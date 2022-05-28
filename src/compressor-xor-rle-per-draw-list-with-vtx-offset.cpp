@@ -41,7 +41,7 @@ void writeCmdListToBuffer(const ImDrawList * cmdList, std::vector<char> & buf) {
     std::copy((char *)(cmdList->IdxBuffer.Data), (char *)(cmdList->IdxBuffer.Data) + nIndicesOriginal*sizeof(ImDrawIdx), std::back_inserter(buf));
 
     if (nIndicesOriginal % 2 == 1) {
-        uint16_t idx = 0;
+        ImDrawIdx idx = 0;
         std::copy((char *)(&idx), (char *)(&idx) + sizeof(idx), std::back_inserter(buf));
     }
 
