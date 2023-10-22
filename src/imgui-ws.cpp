@@ -78,6 +78,10 @@ bool ImGuiWS::addVar(const TPath & path, TGetter && getter) {
     return m_impl->incpp.var(path, std::move(getter));
 }
 
+void ImGuiWS::addResource(const std::string & url, const std::string & content) {
+    m_impl->incpp.setResource(url, content);
+}
+
 bool ImGuiWS::init(int32_t port, std::string pathHttp, std::vector<std::string> resources) {
     m_impl->incpp.var("my_id[%d]", [](const auto & idxs) {
         static int32_t id;

@@ -76,6 +76,7 @@ class ImGuiWS {
         bool setTexture(TextureId textureId, Texture::Type textureType, int32_t width, int32_t height, const char * data);
         bool setDrawData(const struct ImDrawData * drawData);
         bool addVar(const TPath & path, TGetter && getter);
+        void addResource(const std::string & url, const std::string & content);
 
 
         int32_t nConnected() const;
