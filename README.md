@@ -56,6 +56,26 @@ make
 
 Open some browsers and point them to http://localhost:5000/
 
+## Using in your application
+
+A simple way of using this library in your cmake-based application is
+to add the following to your `CMakeLists.txt`:
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(imgui-ws
+    GIT_REPOSITORY    https://github.com/ggerganov/imgui-ws.git
+    GIT_TAG           eab5d6b169ed3e5f8d26c4a6cd9a3271dd6e2dda
+    GIT_SUBMODULES_RECURSE YES
+    )
+FetchContent_MakeAvailable(imgui-ws)
+set(INCPPECT_DEBUG NO)
+# add_executable(«your_executable» «sources»)
+# ...
+target_link_libraries(«your_executable» imgui imgui-ws)
+install(TARGETS incppect uWS)
+```
+
 ## Dependencies
 
  - [uWebSockets](https://github.com/uNetworking/uWebSockets)
